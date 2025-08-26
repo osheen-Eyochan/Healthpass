@@ -5,18 +5,29 @@ export default function Pharmacy() {
   const [tokenData, setTokenData] = useState(null);
   const [error, setError] = useState("");
 
-  // Mock fetch for now
-  const handleFetch = () => {
-    if (tokenId === "ABC123") {
+  const handleFetch = async () => {
+    if (!tokenId.trim()) {
+      setError("Please enter a token ID");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/pharmacy/token/${tokenId}/`);
+
+      if (!response.ok) throw new Error("Token not found");
+
+      const data = await response.json();
+
       setTokenData({
-        patient: "John Doe",
-        medicines: "Paracetamol: 1-0-1\nVitamin C: 1-1-1",
-        payment_verified: true,
-        dispensed: false,
+        patient: data.citizen_name,
+        medicines: data.medicines || "No medicines listed",
+        payment_verified: data.payment_verified || false,
+        dispensed: data.dispensed,
       });
+
       setError("");
-    } else {
-      setError("Token not found");
+    } catch (err) {
+      setError(err.message);
       setTokenData(null);
     }
   };
@@ -24,7 +35,7 @@ export default function Pharmacy() {
   const handleDispense = () => {
     if (tokenData) {
       setTokenData({ ...tokenData, dispensed: true });
-      alert("Medicine marked as dispensed (mock)");
+      alert("Medicine marked as dispensed (frontend only — backend update not yet implemented)");
     }
   };
 
