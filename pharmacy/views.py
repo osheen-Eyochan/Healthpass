@@ -1,35 +1,54 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Token, Patient, Medicine
+from rest_framework import status
+from .models import Patient  # your Patient model
+import qrcode
+from django.http import HttpResponse, JsonResponse
 
-@api_view(['POST'])
+# API Home
+def api_home(request):
+    return JsonResponse({"message": "Welcome to Pharmacy API"})
+
+
+# Generate QR code for a token
+def generate_qr(request, token_number):
+    qr_img = qrcode.make(token_number)
+    response = HttpResponse(content_type="image/png")
+    qr_img.save(response, "PNG")
+    return response
+
+
+# Verify QR dynamically for multiple patients
+@api_view(["POST"])
 def verify_qr(request):
-    qr_code = request.data.get('qr_code')
+    qr_data = request.data.get("qr_data", "")
+    if not qr_data:
+        return Response({"error": "No QR code provided"}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        token = Token.objects.get(qr_code=qr_code)
-        patient = token.patient
-        medicine = token.medicine
-        if token.is_completed:
-            return Response({"success": False, "message": "Token already used"})
+        patient = Patient.objects.get(token_id=qr_data)
         return Response({
-            "success": True,
-            "patient": {
-                "name": patient.name,
-                "token": token.id,
-                "medicine": medicine.name
-            }
+            "token_id": patient.token_id,
+            "name": patient.name
         })
-    except Token.DoesNotExist:
-        return Response({"success": False, "message": "Invalid QR code"})
+    except Patient.DoesNotExist:
+        return Response({"error": "QR code not recognized"}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
+# Update token status (optional)
+@api_view(["POST"])
 def update_token(request):
-    qr_code = request.data.get('qr_code')
-    try:
-        token = Token.objects.get(qr_code=qr_code)
-        token.is_completed = True
-        token.save()
-        return Response({"success": True, "message": "Token marked as completed"})
-    except Token.DoesNotExist:
-        return Response({"success": False, "message": "Invalid QR code"})
+    token_number = request.data.get("token_number", "")
+    new_status = request.data.get("status", "")
+
+    if not token_number:
+        return Response({"error": "Token number is required"}, status=status.HTTP_400_BAD_REQUEST)
+    if not new_status:
+        return Response({"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # You can update DB here
+    return Response({
+        "message": "Token updated successfully",
+        "token_number": token_number,
+        "new_status": new_status
+    })
