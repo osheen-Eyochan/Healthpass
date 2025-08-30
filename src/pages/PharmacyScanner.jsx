@@ -1,148 +1,87 @@
-import React, { useState, useEffect } from "react";
-import { QrReader } from "react-qr-reader";
-import axios from "axios";
+import React, { useState } from "react";
+import QrScanner from "react-qr-scanner";
 
 const PharmacyScanner = () => {
-  const [qrData, setQrData] = useState("");           // scanned QR string
-  const [patientInfo, setPatientInfo] = useState(null); 
-  const [error, setError] = useState("");
-  const [noScanMessage, setNoScanMessage] = useState("");
+  const [qrData, setQrData] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState("");
 
-  // Handle QR scan result
-  const handleScan = async (data) => {
-    if (!data) return;
-
-    setQrData(data);
-    setError("");
-    setNoScanMessage(""); 
-    setScanning(false);
-
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/pharmacy/verify-qr/",
-        { qr_data: data }
-      );
-
-      const info = response.data.data ?? response.data;
-      setPatientInfo({
-        token_id: info.token_id ?? "",
-        name: info.name ?? "",
-      });
-    } catch (err) {
-      console.error("Axios error:", err);
-      const info = err.response?.data?.data ?? err.response?.data ?? null;
-
-      if (info) {
-        setPatientInfo({
-          token_id: info.token_id ?? "",
-          name: info.name ?? "",
-        });
-        setError("");
-      } else {
-        setPatientInfo(null);
-        setError("Failed to fetch data from backend");
-      }
+  const handleScan = (data) => {
+    if (data) {
+      setQrData(data.text); // QR result comes as 'text'
+      console.log("✅ QR Code Data:", data.text);
+      setScanning(false); // Stop camera after successful scan
+      setError("");
     }
   };
 
-  // QR scanner warnings (silent)
   const handleError = (err) => {
-    console.warn("QR Scanner warning:", err);
+    console.error("QR Scan Error:", err);
+    setError("Camera access error. Please check permissions.");
   };
 
-  // Start scanning
-  const handleStartScan = () => {
-    setQrData("");
-    setPatientInfo(null);
-    setError("");
-    setNoScanMessage("");
-    setScanning(true);
-  };
-
-  // Auto-stop scanning after 10 seconds
-  useEffect(() => {
-    let timer;
-    if (scanning) {
-      timer = setTimeout(() => {
-        setScanning(false);
-        if (!qrData) {
-          setNoScanMessage("No QR code detected. Please try again.");
-        }
-      }, 10000);
-    }
-    return () => clearTimeout(timer);
-  }, [scanning, qrData]);
+  // Try parsing QR data as JSON
+  let parsedData = null;
+  try {
+    parsedData = JSON.parse(qrData);
+  } catch (e) {
+    parsedData = null;
+  }
 
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <h2>Pharmacy QR Scanner</h2>
+    <div className="flex flex-col items-center justify-center p-6">
+      <h2 className="text-xl font-bold mb-4">Pharmacy QR Scanner</h2>
 
       {scanning ? (
-        <div
-          style={{
-            width: "80px",
-            height: "80px",
-            margin: "20px auto",
-            overflow: "hidden",
-            borderRadius: "5px",
-            border: "1px solid #1e40af",
-          }}
-        >
-          <QrReader
-            onResult={(result, error) => {
-              if (result) handleScan(result?.text);
-              if (error) handleError(error);
-            }}
-            constraints={{ facingMode: { ideal: "environment" } }}
-            style={{
-              width: "100%",
-              height: "100%",
-              transform: "scale(0.5)",
-              transformOrigin: "top left",
-            }}
-          />
-        </div>
+        <QrScanner
+          delay={300}
+          onError={handleError}
+          onScan={handleScan}
+          style={{ width: "300px" }}
+        />
       ) : (
         <button
-          onClick={handleStartScan}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#1e40af",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            marginTop: "20px",
+          onClick={() => {
+            setQrData("");
+            setScanning(true);
           }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow"
         >
-          {qrData ? "Scan Again" : "Start Scan"}
+          Start Scan
         </button>
       )}
 
-      {qrData && (
-        <p style={{ marginTop: "20px" }}>
-          <strong>Scanned QR Data:</strong> {qrData}
-        </p>
-      )}
+      <div className="mt-4 text-center">
+        {qrData ? (
+          parsedData ? (
+            <div className="text-left bg-gray-100 p-4 rounded-lg shadow">
+              <h3 className="font-semibold text-lg">Prescription Details</h3>
+              <p><b>Name:</b> {parsedData.name}</p>
+              <p><b>Doctor:</b> {parsedData.doctor}</p>
+              <p><b>Token ID:</b> {parsedData.token_id}</p>
 
-      {noScanMessage && <p style={{ color: "orange" }}>{noScanMessage}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+              <h4 className="mt-2 font-semibold">Medicines:</h4>
+              <ul className="list-disc ml-6">
+                {parsedData.medicines?.map((m, i) => (
+                  <li key={i}>
+                    {m.name} - {m.qty} × ₹{m.price} = ₹{m.qty * m.price}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 font-bold">
+                Total: ₹
+                {parsedData.medicines?.reduce((sum, m) => sum + m.qty * m.price, 0)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-green-600 font-semibold">✅ Scanned: {qrData}</p>
+          )
+        ) : (
+          <p className="text-gray-500">Scan a QR code to see result...</p>
+        )}
 
-      {patientInfo && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "10px",
-            background: "#f0f0f0",
-            borderRadius: "5px",
-          }}
-        >
-          <h3>Patient Info:</h3>
-          {patientInfo.token_id && <p><strong>Token ID:</strong> {patientInfo.token_id}</p>}
-          {patientInfo.name && <p><strong>Name:</strong> {patientInfo.name}</p>}
-        </div>
-      )}
+        {error && <p className="text-red-600 mt-2">{error}</p>}
+      </div>
     </div>
   );
 };

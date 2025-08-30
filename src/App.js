@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PharmacyScanner from "./pages/PharmacyScanner"; // Import the QR scanner component
+import PharmacyScanner from "./pages/PharmacyScanner";
+import PrescriptionPage from "./pages/PrescriptionPage";
 
 function App() {
   return (
@@ -18,8 +19,12 @@ function App() {
             </div>
           }
         />
+
         {/* Pharmacy Scanner page */}
         <Route path="/pharmacy-scanner" element={<PharmacyScanner />} />
+
+        {/* Prescription page */}
+        <Route path="/prescription/:tokenNumber" element={<PrescriptionPage />} />
       </Routes>
     </Router>
   );
