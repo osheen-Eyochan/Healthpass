@@ -25,5 +25,6 @@ class Appointment(models.Model):
     appointment_time = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    payment_status = models.BooleanField(default=False)
     def __str__(self):
-        return f"{self.patient.user.username} - {self.doctor.name} on {self.appointment_date}"
+        return f"{self.patient.user.username} - {self.doctor.name} on {self.appointment_date} at {self.appointment_time}"

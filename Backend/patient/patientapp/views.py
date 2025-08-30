@@ -1,13 +1,18 @@
+import razorpay
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
+from io import BytesIO
+import qrcode
+from django.http import HttpResponse
+
 from .models import Patient, Doctor, Appointment
 from .serializers import DoctorSerializer, AppointmentSerializer
-
 
 # ========================
 # Patient Registration
@@ -20,19 +25,13 @@ class PatientRegisterView(APIView):
         password = request.data.get("password")
         email = request.data.get("email")
 
-        if not username or not password or not email:
-            return Response({"error": "All fields are required"}, status=400)
-
         if User.objects.filter(username=username).exists():
             return Response({"error": "Username already exists"}, status=400)
 
         user = User.objects.create_user(username=username, password=password, email=email)
-        token = Token.objects.create(user=user)
-
-        # Create a linked Patient record (empty phone & address for now)
-        Patient.objects.create(user=user, phone="", address="")
-
-        return Response({"token": token.key}, status=201)
+        patient = Patient.objects.create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({"message": "Patient registered successfully", "token": token.key})
 
 
 # ========================
@@ -40,7 +39,6 @@ class PatientRegisterView(APIView):
 # ========================
 class PatientLoginView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []  # login doesn't require token
 
     def post(self, request):
         username = request.data.get("username")
@@ -57,63 +55,81 @@ class PatientLoginView(APIView):
 # Doctor List
 # ========================
 class DoctorListView(APIView):
-    permission_classes = [IsAuthenticated]  # require token
+    permission_classes = [AllowAny]
 
     def get(self, request):
         doctors = Doctor.objects.all()
-        return Response(DoctorSerializer(doctors, many=True).data)
+        serializer = DoctorSerializer(doctors, many=True)
+        return Response(serializer.data)
 
 
 # ========================
 # Book Appointment
 # ========================
 class BookAppointmentView(APIView):
-    permission_classes = [IsAuthenticated]  # require token
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Expect: doctor_id, appointment_date (YYYY-MM-DD), appointment_time (HH:MM)
-        doctor_id = request.data.get("doctor_id")
-        appointment_date = request.data.get("appointment_date")
-        appointment_time = request.data.get("appointment_time")
-
-        if not (doctor_id and appointment_date and appointment_time):
-            return Response({"error": "doctor_id, appointment_date, appointment_time are required"}, status=400)
-
-        doctor = get_object_or_404(Doctor, pk=doctor_id)
-
-        # Ensure the logged-in user has a Patient record
-        patient, _ = Patient.objects.get_or_create(user=request.user, defaults={"phone": "", "address": ""})
-
-        # Check if slot already taken
-        if Appointment.objects.filter(
-            doctor=doctor,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time
-        ).exists():
-            return Response({"error": "This slot is already booked."}, status=400)
-
-        appt = Appointment.objects.create(
-            patient=patient,
-            doctor=doctor,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time
-        )
-
-        return Response({
-            "message": "Appointment booked successfully!",
-            "appointment_id": appt.id
-        }, status=201)
+        serializer = AppointmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(patient=request.user.patient)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 # ========================
-# List Patient's Appointments
+# Appointment List
 # ========================
 class AppointmentListView(APIView):
-    permission_classes = [IsAuthenticated]  # require token
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        patient = get_object_or_404(Patient, user=request.user)
-        appointments = Appointment.objects.filter(patient=patient).order_by(
-            '-appointment_date', '-appointment_time'
-        )
-        return Response(AppointmentSerializer(appointments, many=True).data)
+        appointments = Appointment.objects.filter(patient=request.user.patient)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)
+
+
+# ========================
+# Appointment QR Code
+# ========================
+class AppointmentQRCodeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        appointment = get_object_or_404(Appointment, pk=pk, patient=request.user.patient)
+
+        # Data you want to show in QR
+        qr_data = {
+            "appointment_id": appointment.id,
+            "patient_name": appointment.patient.user.username,
+            "doctor_name": appointment.doctor.name,  # make sure Doctor model has 'name' field
+            "date": str(appointment.appointment_date),
+            "time": str(appointment.appointment_time)
+        }
+
+        img = qrcode.make(qr_data)  # QR will contain JSON with details
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        buffer.seek(0)
+        return HttpResponse(buffer, content_type="image/png")
+
+
+
+# ========================
+# Razorpay Order Creation
+# ========================
+class CreateRazorpayOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            amount = request.data.get("amount")  # in rupees
+            order = client.order.create({
+                "amount": int(amount) * 100,   # convert to paise
+                "currency": "INR",
+                "payment_capture": "1"
+            })
+            return Response(order)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
