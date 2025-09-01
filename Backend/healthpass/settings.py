@@ -37,10 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'corsheaders',
     'rest_framework',
     'receptionist',
     'doctor',
+    'pharmacy',  
 ]
 
 MIDDLEWARE = [
@@ -129,3 +130,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ✅ Allow React frontend to access Django API
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ✅ DRF settings (force JSON only, avoids template error)
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ]
+}
