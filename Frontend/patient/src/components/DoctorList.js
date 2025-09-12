@@ -17,7 +17,7 @@ const DoctorList = () => {
 
   return (
     <div>
-      <h2>Available Dooctors</h2>
+      <h2>Available Doctors</h2>
       <table border="1" cellPadding="10">
         <thead>
           <tr>
