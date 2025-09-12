@@ -1,3 +1,5 @@
 # Ignore specific files
+node_modules/
+build/
 Healthpass/healthpass-backend
 Healthpass/healthpass-frontend
