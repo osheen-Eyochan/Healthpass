@@ -3,15 +3,15 @@ import { QRCodeCanvas } from "qrcode.react";
 import { jsPDF } from "jspdf";
 
 // Razorpay script loader
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
+//const loadRazorpayScript = () => {
+  //return new Promise((resolve) => {
+    //const script = document.createElement("script");
+    //script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    //script.onload = () => resolve(true);
+    //script.onerror = () => resolve(false);
+    //document.body.appendChild(script);
+  //});
+//};
 
 // Generate valid time slots (every 30 min)
 const generateTimeSlots = () => {
@@ -130,11 +130,11 @@ export default function PatientDashboard() {
         `✅ Appointment booked! Initiating payment ₹${selectedAmount}...`
       );
 
-      const res = await loadRazorpayScript();
-      if (!res) {
-        alert("Razorpay SDK failed to load.");
-        return;
-      }
+      //const res = await loadRazorpayScript();
+      //if (!res) {
+        //alert("Razorpay SDK failed to load.");
+        //return;
+      //}
 
       const orderRes = await fetch(
         "http://127.0.0.1:8000/api/patient/create-razorpay-order/",
