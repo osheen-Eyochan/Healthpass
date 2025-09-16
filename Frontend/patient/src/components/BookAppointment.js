@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./PatientDashboard.css"; // Import the CSS file
 
 export default function PatientDashboard() {
   const [doctors, setDoctors] = useState([]);
@@ -114,98 +115,103 @@ export default function PatientDashboard() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Patient Dashboard</h2>
-      <button onClick={handleLogout} style={{ float: "right" }}>
-        Logout
-      </button>
+    <div className="patient-dashboard-container"> {/* Added a class for styling */}
+      <div className="dashboard-header">
+        <h2>Patient Dashboard</h2>
+        <button onClick={handleLogout} className="logout-button">
+          Logout
+        </button>
+      </div>
       <hr />
 
       {/* Book Appointment */}
-      <h3>Book an Appointment</h3>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <label>Doctor:</label>
-        <br />
-        <select
-          name="doctor_id"
-          value={formData.doctor_id}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a doctor</option>
-          {doctors.map((doc) => (
-            <option key={doc.id} value={doc.id}>
-              {doc.name} - {doc.specialization}
-            </option>
-          ))}
-        </select>
-        <br />
-        <br />
+      <section className="booking-section">
+        <h3>Book an Appointment</h3>
+        {message && <p className={`message ${message.includes("failed") || message.includes("Error") ? "error" : "success"}`}>{message}</p>}
+        <form onSubmit={handleSubmit} className="appointment-form">
+          <div className="form-group">
+            <label htmlFor="doctor_id">Doctor:</label>
+            <select
+              id="doctor_id"
+              name="doctor_id"
+              value={formData.doctor_id}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select a doctor</option>
+              {doctors.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.name} - {doc.specialization}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <label>Date:</label>
-        <br />
-        <input
-          type="date"
-          name="appointment_date"
-          value={formData.appointment_date}
-          onChange={handleChange}
-          required
-        />
-        <br />
-        <br />
+          <div className="form-group">
+            <label htmlFor="appointment_date">Date:</label>
+            <input
+              type="date"
+              id="appointment_date"
+              name="appointment_date"
+              value={formData.appointment_date}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <label>Time:</label>
-        <br />
-        <input
-          type="time"
-          name="appointment_time"
-          value={formData.appointment_time}
-          onChange={handleChange}
-          required
-        />
-        <br />
-        <br />
+          <div className="form-group">
+            <label htmlFor="appointment_time">Time:</label>
+            <input
+              type="time"
+              id="appointment_time"
+              name="appointment_time"
+              value={formData.appointment_time}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <button type="submit">Book Appointment</button>
-      </form>
+          <button type="submit" className="book-appointment-button">
+            Book Appointment
+          </button>
+        </form>
+      </section>
 
       <hr />
 
       {/* Appointment List */}
-      <h3>Your Appointments</h3>
-      {appointments.length === 0 ? (
-        <p>No appointments booked yet.</p>
-      ) : (
-        appointments.map((app) => (
-          <div
-            key={app.id}
-            style={{
-              border: "1px solid #ccc",
-              margin: "10px 0",
-              padding: "10px",
-              borderRadius: "5px",
-            }}
-          >
-            <p>
-              <strong>Dr. {app.doctor.name}</strong> (
-              {app.doctor.specialization})
-            </p>
-            <p>
-              Date: {app.appointment_date} | Time: {app.appointment_time}
-            </p>
-            <p>Status: {app.payment_status}</p>
-            {/* ✅ QR Code */}
-            {app.qr_code_url && (
-              <img
-                src={app.qr_code_url}
-                alt="Appointment QR Code"
-                width="120"
-              />
-            )}
+      <section className="appointments-list-section">
+        <h3>Your Appointments</h3>
+        {appointments.length === 0 ? (
+          <p className="no-appointments-message">No appointments booked yet.</p>
+        ) : (
+          <div className="appointments-grid">
+            {appointments.map((app) => (
+              <div key={app.id} className="appointment-card">
+                <p className="doctor-info">
+                  <strong>Dr. {app.doctor.name}</strong> (
+                  {app.doctor.specialization})
+                </p>
+                <p className="appointment-details">
+                  Date: {app.appointment_date} | Time: {app.appointment_time}
+                </p>
+                <p className={`appointment-status status-${app.payment_status.toLowerCase()}`}>
+                  Status: {app.payment_status}
+                </p>
+                {app.qr_code_url && (
+                  <div className="qr-code-container">
+                    <img
+                      src={app.qr_code_url}
+                      alt="Appointment QR Code"
+                      className="qr-code-image"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        ))
-      )}
+        )}
+      </section>
     </div>
   );
 }
