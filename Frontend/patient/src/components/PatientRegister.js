@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link for navigation
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function PatientRegister() {
   const [formData, setFormData] = useState({
@@ -114,36 +114,28 @@ const containerStyle = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  // A softer, more inviting gradient
   backgroundImage: 'linear-gradient(to right bottom, #add8e6, #87ceeb, #6495ed, #4682b4, #3676a0)',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", // Professional font
+  fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
   color: '#333',
 };
 
 const formWrapperStyle = {
-  backgroundColor: 'rgba(255, 255, 255, 0.98)', // Nearly opaque white for crispness
-  padding: '50px', // More padding
-  borderRadius: '12px', // Slightly more rounded
-  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)', // Deeper shadow for elevation
+  backgroundColor: 'rgba(255, 255, 255, 0.98)',
+  padding: '50px',
+  borderRadius: '12px',
+  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
   textAlign: 'center',
-  maxWidth: '500px', // Wider form to accommodate more inputs cleanly
+  maxWidth: '800px', // Increased max-width for two-column layout
   width: '90%',
-  animation: 'fadeIn 0.8s ease-out', // Simple fade-in animation
-
-  // You'd typically define keyframes in a CSS file or using a library
-  // For inline, this is a placeholder. Add to a global CSS file:
-  // @keyframes fadeIn {
-  //   from { opacity: 0; transform: translateY(-20px); }
-  //   to { opacity: 1; transform: translateY(0); }
-  // }
+  animation: 'fadeIn 0.8s ease-out',
 };
 
 const headingStyle = {
   marginBottom: '30px',
   color: '#333',
-  fontSize: '2.2em', // Larger heading
+  fontSize: '2.2em',
   fontWeight: '600',
 };
 
@@ -170,14 +162,14 @@ const errorMessageStyle = {
 };
 
 const formStyle = {
-  display: 'grid', // Use CSS Grid for a clean two-column-like layout (or single column on small screens)
-  gridTemplateColumns: '1fr', // Single column by default
-  gap: '15px', // Space between inputs
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr', // Two columns for the main form fields
+  gap: '20px 30px', // Increased gap for better spacing between columns and rows
   textAlign: 'left',
 };
 
 const inputGroupStyle = {
-  marginBottom: '10px',
+  marginBottom: '0', // Remove bottom margin as gap handles spacing
 };
 
 const labelStyle = {
@@ -190,47 +182,29 @@ const labelStyle = {
 
 const inputStyle = {
   width: '100%',
-  padding: '14px', // More padding
-  border: '1px solid #ced4da', // Lighter, more subtle border
-  borderRadius: '8px', // More rounded
+  padding: '14px',
+  border: '1px solid #ced4da',
+  borderRadius: '8px',
   fontSize: '1em',
   lineHeight: '1.5',
   boxSizing: 'border-box',
   transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
 };
 
-// Placeholder for focus style (needs a CSS file or styled-components for actual :focus)
-inputStyle[':focus'] = {
-  borderColor: '#80bdff',
-  outline: '0',
-  boxShadow: '0 0 0 0.2rem rgba(0, 123, 255, 0.25)',
-};
-
 const buttonStyle = {
+  gridColumn: '1 / -1', // Make the button span all columns
   width: '100%',
-  padding: '15px', // Even more padding
-  backgroundColor: '#007bff', // Primary blue color
+  padding: '15px',
+  backgroundColor: '#007bff',
   color: 'white',
   border: 'none',
   borderRadius: '8px',
   fontSize: '1.1em',
   fontWeight: '600',
   cursor: 'pointer',
-  marginTop: '25px', // More space above the button
+  marginTop: '25px',
   transition: 'background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease',
   boxShadow: '0 4px 10px rgba(0, 123, 255, 0.2)',
-};
-
-// Placeholder for button hover/active styles
-buttonStyle[':hover'] = {
-  backgroundColor: '#0056b3',
-  transform: 'translateY(-2px)',
-  boxShadow: '0 6px 15px rgba(0, 123, 255, 0.3)',
-};
-
-buttonStyle[':active'] = {
-  transform: 'translateY(0)',
-  boxShadow: '0 2px 5px rgba(0, 123, 255, 0.2)',
 };
 
 const loginPromptStyle = {
@@ -244,9 +218,4 @@ const linkStyle = {
   textDecoration: 'none',
   fontWeight: 'bold',
   transition: 'color 0.2s ease',
-};
-
-linkStyle[':hover'] = {
-  color: '#0056b3',
-  textDecoration: 'underline',
 };
