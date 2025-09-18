@@ -2,12 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Doctor login
-    path("login/", views.doctor_login, name="doctor-login"),
+    # Doctor login & dashboard
+    path("login/", views.doctor_login, name="doctor_login"),
+    path("<int:doctor_id>/dashboard/", views.doctor_dashboard_stats, name="doctor_dashboard_stats"),
+    path("<int:doctor_id>/appointments/", views.doctor_upcoming_appointments, name="doctor_upcoming_appointments"),
 
-    # Dashboard stats
-    path("<int:doctor_id>/dashboard-stats/", views.doctor_dashboard_stats, name="doctor-dashboard-stats"),
-
-    # Upcoming appointments
-    path("<int:doctor_id>/upcoming-appointments/", views.doctor_upcoming_appointments, name="doctor-upcoming-appointments"),
+    # Consultations
+    path("consultations/", views.consultation_list_create, name="consultation_list_create"),
+    path("consultations/<int:consultation_id>/", views.consultation_detail, name="consultation_detail"),
 ]

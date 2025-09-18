@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.utils import timezone
-from doctor.models import Doctor
 
 # -------------------------
 # Receptionist Model
@@ -26,6 +24,7 @@ class Receptionist(AbstractBaseUser):
     def __str__(self):
         return self.username
 
+
 # -------------------------
 # Patient Model
 # -------------------------
@@ -38,15 +37,6 @@ class Patient(models.Model):
     def __str__(self):
         return self.name
 
-# -------------------------
-# Doctor Model
-# -------------------------
-#class Doctor(models.Model):
- #   name = models.CharField(max_length=255)
-  #  specialization = models.CharField(max_length=100)
-
-   # def __str__(self):
-    #    return f"Dr. {self.name} ({self.specialization})"
 
 # -------------------------
 # Appointment Model
@@ -65,7 +55,8 @@ PAYMENT_CHOICES = [
 
 class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=True, blank=True)
+    # Use string reference to Doctor to avoid circular import
+    doctor = models.ForeignKey('doctor.Doctor', on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
@@ -74,5 +65,6 @@ class Appointment(models.Model):
 
     def __str__(self):
         patient_name = self.patient.name if self.patient else "Unknown Patient"
-        doctor_name = self.doctor.name if self.doctor else "Unknown Doctor"
+        # Use getattr to safely handle string reference
+        doctor_name = getattr(self.doctor, 'full_name', 'Unknown Doctor')
         return f"{patient_name} - {doctor_name} ({self.date} {self.time})"
