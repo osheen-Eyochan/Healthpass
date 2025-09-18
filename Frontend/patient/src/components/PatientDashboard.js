@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { jsPDF } from "jspdf";
-import "./PatientDashboard.css"; // Assuming you'll create this CSS file
+import "./PatientDashboard.css";
 
-// Helper to generate time slots (every 30 min)
+// -------------------------
+// Time Slot Helpers
+// -------------------------
 const generateTimeSlots = () => {
   const slots = [];
   const addSlots = (startHour, endHour) => {
@@ -13,32 +15,38 @@ const generateTimeSlots = () => {
       );
     }
   };
-  addSlots(8, 12); // Morning: 08:00-12:00
+  addSlots(8, 12);  // Morning: 08:00-12:00
   addSlots(15, 19); // Afternoon: 15:00-19:00
   return slots;
 };
 
 const allTimeSlots = generateTimeSlots();
-const morningSlots = allTimeSlots.filter(time => {
-  const [hours] = time.split(":").map(Number);
-  return hours >= 8 && hours < 12;
-});
-const afternoonSlots = allTimeSlots.filter(time => {
-  const [hours] = time.split(":").map(Number);
-  return hours >= 15 && hours < 19;
+const morningSlots = allTimeSlots.filter(time => Number(time.split(":")[0]) >= 8 && Number(time.split(":")[0]) < 12);
+const afternoonSlots = allTimeSlots.filter(time => Number(time.split(":")[0]) >= 15 && Number(time.split(":")[0]) < 19);
+
+// -------------------------
+// Razorpay & Fetch Helpers
+// -------------------------
+const loadRazorpayScript = () => new Promise((resolve) => {
+  const script = document.createElement("script");
+  script.src = "https://checkout.razorpay.com/v1/checkout.js";
+  script.onload = () => resolve(true);
+  script.onerror = () => resolve(false);
+  document.body.appendChild(script);
 });
 
-// Helper for Razorpay script (uncomment if using Razorpay)
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
+const safeFetchJSON = async (url, options) => {
+  const res = await fetch(url, options);
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) return await res.json();
+  const text = await res.text();
+  console.error("Expected JSON, got:", text);
+  throw new Error("Server returned non-JSON response");
 };
 
+// -------------------------
+// Main Component
+// -------------------------
 export default function PatientDashboard() {
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -49,27 +57,28 @@ export default function PatientDashboard() {
   });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPastAppointments, setShowPastAppointments] = useState(false); // New state for toggling
+  const [showPastAppointments, setShowPastAppointments] = useState(false);
 
   const token = localStorage.getItem("authToken");
   const username = localStorage.getItem("username");
   const [selectedAmount] = useState(100); // Fixed ₹100
 
+  // -------------------------
   // Redirect if not authenticated
+  // -------------------------
   useEffect(() => {
-    if (!token || !username) {
-      window.location.href = "/";
-    }
+    if (!token || !username) window.location.href = "/";
   }, [token, username]);
 
-  // Memoized fetch functions
+  // -------------------------
+  // Fetch Doctors & Appointments
+  // -------------------------
   const fetchDoctors = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/patient/doctors/", {
+      const data = await safeFetchJSON("http://127.0.0.1:8000/api/patient/doctors/", {
         headers: { Authorization: `Token ${token}` },
       });
-      const data = await res.json();
       setDoctors(data);
     } catch (error) {
       console.error("Failed to fetch doctors:", error);
@@ -80,10 +89,9 @@ export default function PatientDashboard() {
   const fetchAppointments = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/patient/appointments/", {
+      const data = await safeFetchJSON("http://127.0.0.1:8000/api/patient/appointments/", {
         headers: { Authorization: `Token ${token}` },
       });
-      const data = await res.json();
       setAppointments(data);
     } catch (error) {
       console.error("Failed to fetch appointments:", error);
@@ -91,23 +99,21 @@ export default function PatientDashboard() {
     }
   }, [token]);
 
-  // Initial data fetch
   useEffect(() => {
     fetchDoctors();
     fetchAppointments();
   }, [fetchDoctors, fetchAppointments]);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Determine booked times for the selected date
   const getBookedTimesForDate = useCallback((date) => {
     if (!date) return [];
-    return appointments
-      .filter(appt => appt.appointment_date === date)
-      .map(appt => appt.appointment_time);
+    return appointments.filter(appt => appt.appointment_date === date).map(appt => appt.appointment_time);
   }, [appointments]);
 
+  // -------------------------
+  // Book Appointment & Payment
+  // -------------------------
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -119,16 +125,19 @@ export default function PatientDashboard() {
       return;
     }
 
+    // Validate time slot
     const [hours] = formData.appointment_time.split(":").map(Number);
     if (!((hours >= 8 && hours < 12) || (hours >= 15 && hours < 19))) {
-      setMessage(
-        "❌ Please select a valid appointment time (08:00–12:00 or 15:00–19:00)."
-      );
+      setMessage("❌ Please select a valid appointment time (08:00–12:00 or 15:00–19:00).");
       setLoading(false);
       return;
     }
-    
-    // Check if the slot is already booked for the selected date
+
+    // Convert time to HH:MM:SS for Django
+    const [h, m] = formData.appointment_time.split(":");
+    const appointmentTime = `${h.padStart(2, "0")}:${m.padStart(2, "0")}:00`;
+
+    // Check if slot is already booked
     if (getBookedTimesForDate(formData.appointment_date).includes(formData.appointment_time)) {
       setMessage("❌ This time slot is already booked. Please choose another.");
       setLoading(false);
@@ -136,32 +145,7 @@ export default function PatientDashboard() {
     }
 
     try {
-      // 1. Book Appointment
-      const appointmentRes = await fetch(
-        "http://127.0.0.1:8000/api/patient/book-appointment/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-      const appointmentData = await appointmentRes.json();
-
-      if (!appointmentRes.ok) {
-        throw new Error(appointmentData.detail || "Error booking appointment");
-      }
-      if (!appointmentData.id) {
-        throw new Error("Appointment booking failed: No ID returned.");
-      }
-
-      setMessage(
-        `✅ Appointment booked! Initiating payment for ₹${selectedAmount}...`
-      );
-
-      // 2. Load Razorpay Script (uncomment if using Razorpay)
+      // Load Razorpay SDK
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         setMessage("❌ Razorpay SDK failed to load. Please try again.");
@@ -169,8 +153,8 @@ export default function PatientDashboard() {
         return;
       }
 
-      // 3. Create Razorpay Order
-      const orderRes = await fetch(
+      // Create Razorpay order
+      const orderData = await safeFetchJSON(
         "http://127.0.0.1:8000/api/patient/create-razorpay-order/",
         {
           method: "POST",
@@ -178,39 +162,52 @@ export default function PatientDashboard() {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
           },
-          body: JSON.stringify({ amount: selectedAmount * 100 }), // Razorpay expects amount in paisa
+          body: JSON.stringify({ amount: selectedAmount * 100 }),
         }
       );
-      const orderData = await orderRes.json();
 
-      if (!orderRes.ok) {
-        throw new Error(orderData.detail || "Payment order creation failed");
-      }
-      if (!orderData.id) {
-        throw new Error("Payment order creation failed: No ID returned.");
-      }
+      if (!orderData.id) throw new Error("Payment order creation failed.");
 
-      // 4. Open Razorpay Checkout
+      // Razorpay Checkout options
       const options = {
-        key: "rzp_test_RAG8gAodjvayL3", // Replace with your actual key
+        key: "rzp_test_RAG8gAodjvayL3",
         amount: orderData.amount,
         currency: orderData.currency,
         name: "HealthPass",
         description: `Appointment Payment ₹${selectedAmount}`,
         order_id: orderData.id,
         handler: async (response) => {
-          setMessage(
-            `✅ Payment successful! Payment ID: ${response.razorpay_payment_id}`
-          );
-          await fetchAppointments(); // Refresh appointments after successful payment
-          setFormData({ doctor_id: "", appointment_date: "", appointment_time: "" }); // Clear form
+          // After successful payment, book the appointment with payment_id
+          try {
+            const appointmentData = await safeFetchJSON(
+              "http://127.0.0.1:8000/api/patient/book-appointment/",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Token ${token}`,
+                },
+                body: JSON.stringify({
+                  doctor_id: formData.doctor_id,
+                  appointment_date: formData.appointment_date,
+                  appointment_time: appointmentTime, // ✅ corrected
+                  payment_id: response.razorpay_payment_id,
+                }),
+              }
+            );
+
+            if (!appointmentData.id) throw new Error("Appointment booking failed.");
+
+            setMessage(`✅ Appointment booked & paid! Payment ID: ${response.razorpay_payment_id}`);
+            await fetchAppointments();
+            setFormData({ doctor_id: "", appointment_date: "", appointment_time: "" });
+          } catch (err) {
+            console.error("Booking Error:", err);
+            setMessage(`❌ ${err.message}`);
+          }
         },
-        prefill: {
-          name: username,
-          email: "patient@example.com", // Replace with actual patient email
-          contact: "9999999999", // Replace with actual patient contact
-        },
-        theme: { color: "#4CAF50" }, // Green theme for HealthPass
+        prefill: { name: username, email: "patient@example.com", contact: "9999999999" },
+        theme: { color: "#4CAF50" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -220,8 +217,8 @@ export default function PatientDashboard() {
       rzp.open();
 
     } catch (err) {
-      console.error("Booking or Payment Error:", err);
-      setMessage(`❌ Error: ${err.message || "Something went wrong."}`);
+      console.error("Payment Flow Error:", err);
+      setMessage(`❌ ${err.message || "Something went wrong."}`);
     } finally {
       setLoading(false);
     }
@@ -233,12 +230,12 @@ export default function PatientDashboard() {
     window.location.href = "/";
   };
 
+  // -------------------------
+  // QR Code PDF Download
+  // -------------------------
   const downloadQR = (id, appt) => {
     const canvas = document.getElementById(`qr-${id}`);
-    if (!canvas) {
-      console.error(`QR canvas with ID qr-${id} not found.`);
-      return;
-    }
+    if (!canvas) return;
 
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
@@ -249,35 +246,23 @@ export default function PatientDashboard() {
 
     pdf.addImage(imgData, "PNG", qrX, margin, qrSize, qrSize);
     pdf.setFontSize(22);
-    pdf.setTextColor(40, 40, 40); // Dark grey
-    pdf.text("HealthPass Appointment Ticket", pageWidth / 2, margin + qrSize + 20, {
-      align: "center",
-    });
+    pdf.setTextColor(40, 40, 40);
+    pdf.text("HealthPass Appointment Ticket", pageWidth / 2, margin + qrSize + 20, { align: "center" });
 
     pdf.setFontSize(14);
-    pdf.setTextColor(70, 70, 70); // Medium grey
+    pdf.setTextColor(70, 70, 70);
     const startY = margin + qrSize + 40;
     const lineSpacing = 10;
     pdf.text(`Appointment ID: ${appt.id}`, margin, startY);
     pdf.text(`Patient: ${username}`, margin, startY + lineSpacing);
-    pdf.text(
-      `Doctor: ${appt.doctor_name || appt.doctor?.name || "N/A"}`,
-      margin,
-      startY + 2 * lineSpacing
-    );
-    pdf.text(
-      `Specialization: ${appt.doctor?.specialization || "N/A"}`,
-      margin,
-      startY + 3 * lineSpacing
-    );
+    pdf.text(`Doctor: ${appt.doctor_name || appt.doctor?.name || "N/A"}`, margin, startY + 2 * lineSpacing);
+    pdf.text(`Specialization: ${appt.doctor_specialization || appt.doctor?.specialization || "N/A"}`, margin, startY + 3 * lineSpacing);
     pdf.text(`Date: ${appt.appointment_date}`, margin, startY + 4 * lineSpacing);
     pdf.text(`Time: ${appt.appointment_time}`, margin, startY + 5 * lineSpacing);
 
     pdf.setFontSize(10);
-    pdf.setTextColor(150, 150, 150); // Light grey
-    pdf.text("Thank you for choosing HealthPass!", pageWidth / 2, startY + 7 * lineSpacing, {
-      align: "center",
-    });
+    pdf.setTextColor(150, 150, 150);
+    pdf.text("Thank you for choosing HealthPass!", pageWidth / 2, startY + 7 * lineSpacing, { align: "center" });
 
     pdf.save(`HealthPass_Appointment_${appt.id}.pdf`);
   };
@@ -285,37 +270,33 @@ export default function PatientDashboard() {
   const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0]; // For booking future appointments
+  const minDate = tomorrow.toISOString().split("T")[0];
 
-  // Filter appointments based on showPastAppointments state
-  const filteredAppointments = appointments.filter(appt => {
-    const apptDate = new Date(appt.appointment_date);
-    // Set both dates to start of day for accurate comparison
-    apptDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-
-    if (showPastAppointments) {
-      return apptDate < today; // Past appointments
-    } else {
-      return apptDate >= today; // Upcoming/current appointments
-    }
-  }).sort((a, b) => {
-      // Sort upcoming appointments by date ascending, past by date descending
+  const filteredAppointments = appointments
+    .filter(appt => {
+      const apptDate = new Date(appt.appointment_date);
+      apptDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      return showPastAppointments ? apptDate < today : apptDate >= today;
+    })
+    .sort((a, b) => {
       const dateA = new Date(a.appointment_date + 'T' + a.appointment_time);
       const dateB = new Date(b.appointment_date + 'T' + b.appointment_time);
       return showPastAppointments ? dateB - dateA : dateA - dateB;
-  });
+    });
 
+  // -------------------------
+  // JSX
+  // -------------------------
   return (
     <div className="patient-dashboard">
       <header className="dashboard-header">
         <h1>Welcome, {username}!</h1>
-        <button onClick={handleLogout} className="btn-logout">
-          Logout
-        </button>
+        <button onClick={handleLogout} className="btn-logout">Logout</button>
       </header>
 
       <div className="dashboard-content">
+        {/* Appointment Booking */}
         <section className="appointment-booking-card">
           <h2>Book a New Appointment</h2>
           {message && (
@@ -326,94 +307,56 @@ export default function PatientDashboard() {
           <form onSubmit={handleBookAppointment} className="appointment-form">
             <div className="form-group">
               <label htmlFor="doctor_id">Select Doctor:</label>
-              <select
-                id="doctor_id"
-                name="doctor_id"
-                value={formData.doctor_id}
-                onChange={handleChange}
-                required
-              >
+              <select id="doctor_id" name="doctor_id" value={formData.doctor_id} onChange={handleChange} required>
                 <option value="">-- Choose a Doctor --</option>
                 {doctors.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    Dr. {doc.name} ({doc.specialization})
-                  </option>
+                  <option key={doc.id} value={doc.id}>Dr. {doc.name} ({doc.specialization})</option>
                 ))}
               </select>
             </div>
 
             <div className="form-group">
               <label htmlFor="appointment_date">Appointment Date:</label>
-              <input
-                type="date"
-                id="appointment_date"
-                name="appointment_date"
-                value={formData.appointment_date}
-                onChange={handleChange}
-                min={minDate}
-                required
-              />
+              <input type="date" id="appointment_date" name="appointment_date" value={formData.appointment_date} onChange={handleChange} min={minDate} required />
             </div>
 
             <div className="form-group">
               <label htmlFor="appointment_time">Appointment Time:</label>
-              <select
-                id="appointment_time"
-                name="appointment_time"
-                value={formData.appointment_time}
-                onChange={handleChange}
-                required
-                disabled={!formData.appointment_date} // Disable if no date is selected
-              >
+              <select id="appointment_time" name="appointment_time" value={formData.appointment_time} onChange={handleChange} required disabled={!formData.appointment_date}>
                 <option value="">-- Select Time --</option>
                 {formData.appointment_date && (
                   <>
                     <optgroup label="Morning (08:00–12:00)">
                       {morningSlots.map((time) => {
                         const isBooked = getBookedTimesForDate(formData.appointment_date).includes(time);
-                        return (
-                          <option key={time} value={time} disabled={isBooked}>
-                            {time} {isBooked ? "(Booked)" : ""}
-                          </option>
-                        );
+                        return <option key={time} value={time} disabled={isBooked}>{time} {isBooked ? "(Booked)" : ""}</option>;
                       })}
                     </optgroup>
                     <optgroup label="Afternoon (15:00–19:00)">
                       {afternoonSlots.map((time) => {
                         const isBooked = getBookedTimesForDate(formData.appointment_date).includes(time);
-                        return (
-                          <option key={time} value={time} disabled={isBooked}>
-                            {time} {isBooked ? "(Booked)" : ""}
-                          </option>
-                        );
+                        return <option key={time} value={time} disabled={isBooked}>{time} {isBooked ? "(Booked)" : ""}</option>;
                       })}
                     </optgroup>
                   </>
-                )}
-                {!formData.appointment_date && (
-                    <option value="" disabled>Please select a date first</option>
                 )}
               </select>
             </div>
 
             <p className="payment-info">Amount to Pay: <strong>₹{selectedAmount}</strong></p>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Processing..." : "Book Appointment & Pay"}
-            </button>
+            <button type="submit" className="btn-primary" disabled={loading}>{loading ? "Processing..." : "Book Appointment & Pay"}</button>
           </form>
         </section>
 
+        {/* Appointments List */}
         <section className="your-appointments-section">
           <div className="appointments-header">
             <h2>{showPastAppointments ? "Your Past Appointments" : "Your Upcoming Appointments"}</h2>
-            <button
-              onClick={() => setShowPastAppointments(!showPastAppointments)}
-              className="btn-toggle-appointments"
-            >
+            <button onClick={() => setShowPastAppointments(!showPastAppointments)} className="btn-toggle-appointments">
               {showPastAppointments ? "Show Upcoming" : "Show Past"}
             </button>
           </div>
-          
+
           {filteredAppointments.length === 0 ? (
             <p className="no-appointments">
               {showPastAppointments ? "No past appointments found." : "No upcoming appointments booked yet. Book one above!"}
@@ -423,19 +366,17 @@ export default function PatientDashboard() {
               {filteredAppointments.map((appt) => (
                 <div key={appt.id} className="appointment-card">
                   <div className="appointment-details">
-                    <h3>Dr. {appt.doctor_name || appt.doctor?.name || "N/A"}</h3>
-                    <p><strong>Specialization:</strong> {appt.doctor?.specialization || "N/A"}</p>
+                    <h3>{appt.doctor_name || appt.doctor?.name || "N/A"}</h3>
+                    
                     <p><strong>Date:</strong> {appt.appointment_date}</p>
                     <p><strong>Time:</strong> {appt.appointment_time}</p>
                     <p><strong>Patient:</strong> {username}</p>
-                    <p className={`status-${appt.status?.toLowerCase() || 'pending'}`}>
-                      <strong>Status:</strong> {appt.status || 'Pending'}
-                    </p>
+                    <p className={`status-${appt.status?.toLowerCase() || 'pending'}`}><strong>Status:</strong> {appt.status || 'Pending'}</p>
                   </div>
                   <div className="appointment-actions">
                     <QRCodeCanvas
                       id={`qr-${appt.id}`}
-                      value={JSON.stringify({ // Stringify the object for better QR data
+                      value={JSON.stringify({
                         appointment_id: appt.id,
                         patient: username,
                         doctor: appt.doctor_name || appt.doctor?.name,
@@ -443,18 +384,13 @@ export default function PatientDashboard() {
                         date: appt.appointment_date,
                         time: appt.appointment_time,
                       })}
-                      size={128} // Smaller QR for cleaner display
+                      size={128}
                       bgColor="#ffffff"
                       fgColor="#000000"
                       level="H"
                       className="qr-code-display"
                     />
-                    <button
-                      onClick={() => downloadQR(appt.id, appt)}
-                      className="btn-secondary"
-                    >
-                      Download Ticket (PDF)
-                    </button>
+                    <button onClick={() => downloadQR(appt.id, appt)} className="btn-secondary">Download Ticket (PDF)</button>
                   </div>
                 </div>
               ))}
