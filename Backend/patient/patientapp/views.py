@@ -71,60 +71,65 @@ class BookAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Extract data directly from request.data
         doctor_id = request.data.get('doctor_id')
         appointment_date_str = request.data.get('appointment_date')
-        appointment_time_str = request.data.get('appointment_time') # Expected HH:MM:SS
-        payment_id = request.data.get('payment_id') # Crucial for post-payment booking
+        token_number = request.data.get('token_number')   # ✅ patient selects token
+        payment_id = request.data.get('payment_id')
 
-        # Basic validation for essential fields
-        if not all([doctor_id, appointment_date_str, appointment_time_str, payment_id]):
-            return Response({"error": "Missing required fields for booking: doctor_id, appointment_date, appointment_time, or payment_id."}, status=400)
+        if not all([doctor_id, appointment_date_str, token_number, payment_id]):
+            return Response({"error": "Missing required fields for booking: doctor_id, appointment_date, token_number, or payment_id."}, status=400)
 
         try:
             doctor = Doctor.objects.get(id=doctor_id)
         except Doctor.DoesNotExist:
             return Response({"error": "Doctor not found."}, status=404)
 
-        # Convert date and time strings to Python date/time objects
         try:
             appointment_date = datetime.datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
-            appointment_time = datetime.datetime.strptime(appointment_time_str, '%H:%M:%S').time()
+            token_number = int(token_number)
         except ValueError:
-            return Response({"error": "Invalid date or time format. Expected YYYY-MM-DD for date and HH:MM:SS for time."}, status=400)
+            return Response({"error": "Invalid date or token number."}, status=400)
 
-        # Prevent double booking for the same doctor at the same time and date
+        # ----------------------------
+        # Convert token → time slot (example: 15 min each, start 9:00)
+        # ----------------------------
+        start_time = datetime.time(9, 0)  # clinic start time
+        slot_minutes = 15
+        base_datetime = datetime.datetime.combine(appointment_date, start_time)
+        appointment_time = (base_datetime + datetime.timedelta(minutes=(token_number - 1) * slot_minutes)).time()
+
+        # Prevent double booking (same token already used)
         if Appointment.objects.filter(
             doctor=doctor,
             appointment_date=appointment_date,
-            appointment_time=appointment_time
+            token_number=token_number
         ).exists():
-            return Response({"error": "This time slot is already booked. Please choose another."}, status=400)
+            return Response({"error": "This token number is already booked. Please choose another."}, status=400)
 
-        # Create the appointment instance
         try:
             appointment = Appointment.objects.create(
-                patient=request.user.patient, # Link to the authenticated patient
+                patient=request.user.patient,
                 doctor=doctor,
                 appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                payment_id=payment_id, # Save the Razorpay Payment ID
-                status="Confirmed",     # Set status as confirmed after successful payment
-                payment_status="Paid"   # Set payment status
+                appointment_time=appointment_time,  # ✅ auto-calculated
+                token_number=token_number,
+                payment_id=payment_id,
+                status="Confirmed",
+                payment_status="Paid"
             )
-            # Use serializer to return a consistent and detailed response
             response_data = AppointmentSerializer(appointment).data
             return Response({
                 "message": "Appointment booked and paid successfully!",
                 "appointment": response_data,
-                "id": appointment.id # Ensure ID is directly accessible for frontend check
+                "id": appointment.id,
+                "token_number": appointment.token_number
             }, status=201)
 
         except Exception as e:
-            # Log the full exception for server-side debugging
             import traceback
-            traceback.print_exc() # Prints stack trace to console
+            traceback.print_exc()
             return Response({"error": f"An internal error occurred while creating appointment: {str(e)}"}, status=500)
+
 
 
 # ========================

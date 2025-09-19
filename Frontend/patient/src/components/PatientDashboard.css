@@ -1,9 +1,8 @@
-/* PatientDashboard.css */
-
 :root {
   --primary-color: #4CAF50; /* Green */
   --secondary-color: #2196F3; /* Blue */
   --accent-color: #FFC107; /* Yellow */
+  --error-color: #f44336; /* Red for errors/booked */
   --text-color: #333;
   --light-text-color: #666;
   --bg-color-light: #f9f9f9;
@@ -12,6 +11,19 @@
   --card-bg: #fff;
   --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   --border-radius: 8px;
+
+  /* New token specific colors */
+  --token-available-bg: #e6ffe6;
+  --token-available-border: var(--primary-color);
+  --token-available-text: #1a5e1a;
+
+  --token-booked-bg: #ffe6e6;
+  --token-booked-border: var(--error-color);
+  --token-booked-text: #9e2a2a;
+
+  --token-selected-bg: #bbdefb;
+  --token-selected-border: var(--secondary-color);
+  --token-selected-text: #0d47a1;
 }
 
 body {
@@ -48,7 +60,7 @@ body {
 }
 
 .btn-logout {
-  background-color: #f44336; /* Red */
+  background-color: var(--error-color); /* Use error-color variable */
   color: white;
   padding: 10px 20px;
   border: none;
@@ -59,7 +71,7 @@ body {
 }
 
 .btn-logout:hover {
-  background-color: #d32f2f;
+  background-color: #d32f2f; /* Darker red */
 }
 
 .dashboard-content {
@@ -70,7 +82,7 @@ body {
 
 @media (min-width: 768px) {
   .dashboard-content {
-    grid-template-columns: 1fr 1.5fr; /* Booking on left, appointments on right */
+    grid-template-columns: 1.2fr 1.8fr; /* Booking left, appointments right - adjusted ratio */
   }
 }
 
@@ -88,10 +100,6 @@ section h2 {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
   font-size: 1.6em;
-}
-
-.appointment-booking-card {
-  /* Specific styling if needed */
 }
 
 .appointment-form {
@@ -118,7 +126,7 @@ section h2 {
   border-radius: 5px;
   font-size: 1em;
   width: 100%;
-  box-sizing: border-box; /* Include padding in element's total width and height */
+  box-sizing: border-box;
 }
 
 .form-group select:focus,
@@ -215,19 +223,17 @@ section h2 {
   }
 }
 
-
 .appointment-details {
   flex-grow: 1;
-  margin-bottom: 15px; /* Space between details and actions on small screens */
+  margin-bottom: 15px;
 }
 
 @media (min-width: 500px) {
   .appointment-details {
     margin-bottom: 0;
-    margin-right: 20px; /* Space between details and actions on larger screens */
+    margin-right: 20px;
   }
 }
-
 
 .appointment-details h3 {
   color: var(--secondary-color);
@@ -282,13 +288,13 @@ section h2 {
   color: var(--primary-color);
 }
 .status-completed {
-  color: #757575; /* Grey */
+  color: #757575;
 }
 .status-cancelled {
-  color: #f44336; /* Red */
+  color: var(--error-color);
 }
 
-/* Optional: Scrollbar styling for a cleaner look */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -301,4 +307,458 @@ section h2 {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #43a047;
+}
+
+/* Token Display Styles */
+.token-display-section {
+  margin-top: 20px;
+  background-color: var(--bg-color-light); /* Use variable */
+  padding: 15px;
+  border-radius: var(--border-radius); /* Use variable */
+  border: 1px solid var(--border-color); /* Use variable */
+}
+
+.token-display-section h3 {
+  margin-top: 0;
+  color: var(--text-color); /* Use variable */
+  font-size: 1.1em;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Color Legend */
+.token-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 15px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+  padding: 10px; /* Add some padding */
+  border-bottom: 1px dashed var(--border-color); /* Separator */
+  background-color: #fafafa;
+  border-radius: 5px;
+}
+
+.token-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  font-weight: 500;
+}
+
+.legend-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.legend-available {
+  background-color: var(--token-available-bg);
+  border: 1px solid var(--token-available-border);
+}
+
+.legend-booked {
+  background-color: var(--token-booked-bg);
+  border: 1px solid var(--token-booked-border);
+}
+
+.legend-selected {
+  background-color: var(--token-selected-bg);
+  border: 1px solid var(--token-selected-border);
+}
+
+/* Token Grid */
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid with min width */
+  gap: 12px;
+  margin-top: 15px;
+  max-height: 450px; /* Make grid scrollable if many tokens */
+  overflow-y: auto;
+  padding: 15px; /* Padding inside the scrollable grid */
+  border: 1px solid var(--bg-color-dark); /* Subtle border for the grid area */
+  border-radius: var(--border-radius);
+  background-color: #fcfcfc; /* Slightly lighter background */
+}
+
+/* Custom scrollbar for token grid */
+.token-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.token-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.token-grid::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.token-grid::-webkit-scrollbar-thumb:hover {
+  background: #43a047;
+}
+
+.token-box {
+  border-radius: 8px;
+  padding: 12px 8px; /* Adjust padding for better spacing */
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px; /* Ensure consistent height */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-size: 1em; /* Adjusted font size */
+  border: 2px solid transparent; /* Default transparent border */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add a subtle gradient background */
+.token-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Available tokens - Green */
+.token-box.available {
+  background-color: var(--token-available-bg);
+  border-color: var(--token-available-border);
+  color: var(--token-available-text);
+}
+
+.token-box.available:hover {
+  background-color: #c8ffc8; /* Slightly darker green on hover */
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+  border-color: #388e3c;
+}
+
+/* Booked tokens - Red */
+.token-box.booked {
+  background-color: var(--token-booked-bg);
+  border-color: var(--token-booked-border);
+  color: var(--token-booked-text);
+  cursor: not-allowed;
+  opacity: 0.8;
+  position: relative;
+}
+
+/* Add strikethrough effect for booked tokens */
+.token-box.booked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background-color: var(--token-booked-border);
+  transform: translateY(-50%) rotate(-15deg);
+  opacity: 0.7;
+}
+
+.token-box.booked:hover {
+  transform: none;
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.2);
+}
+
+/* Selected token - Blue */
+.token-box.selected {
+  background-color: var(--token-selected-bg);
+  border-color: var(--token-selected-border);
+  color: var(--token-selected-text);
+  transform: scale(1.05); /* Slightly larger when selected */
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+  border-width: 3px; /* Thicker border when selected */
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+/* Pulse animation for selected token */
+@keyframes selectedPulse {
+  0% {
+    box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.6);
+  }
+  100% {
+    box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+  }
+}
+
+.token-number {
+  font-size: 1.3em; /* Emphasize token number */
+  margin-bottom: 4px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.token-time {
+  font-size: 0.85em; /* Smaller for time */
+  color: var(--light-text-color); /* Default time color */
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.token-box.booked .token-time {
+  color: var(--token-booked-text); /* Ensure time color matches booked state */
+  opacity: 0.7;
+}
+
+.token-box.selected .token-time {
+  color: var(--token-selected-text); /* Ensure time color matches selected state */
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* Responsive adjustments for token grid */
+@media (max-width: 480px) {
+  .token-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+  
+  .token-box {
+    min-height: 60px;
+    padding: 8px 4px;
+  }
+  
+  .token-number {
+    font-size: 1.1em;
+  }
+  
+  .token-time {
+    font-size: 0.75em;
+  }
+}
+
+/* Dropdown styling */
+.appointment-form select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color); /* Use variable */
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: var(--card-bg); /* Use variable */
+  -webkit-appearance: none; /* Remove default arrow on WebKit */
+  -moz-appearance: none; /* Remove default arrow on Firefox */
+  appearance: none; /* Remove default arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M10.293%2C3.293%2C6%2C7.586%2C1.707%2C3.293A1%2C1%2C0%2C0%2C0%2C.293%2C4.707l5%2C5a1%2C1%2C0%2C0%2C0%2C1.414%2C0l5%2C-5A1%2C1%2C0%2C0%2C0%2C10.293%2C3.293Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  font-size: 1em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.appointment-form select:hover {
+  border-color: var(--primary-color);
+}
+
+.appointment-form select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.appointment-form select:disabled {
+  background-color: var(--bg-color-dark); /* Use variable */
+  cursor: not-allowed;
+  color: var(--light-text-color);
+  opacity: 0.6;
+}
+
+.select-doctor-date-message {
+  text-align: center;
+  color: var(--light-text-color); /* Use variable */
+  margin-top: 20px;
+  font-style: italic;
+  padding: 15px;
+  background-color: var(--bg-color-dark); /* Use variable */
+  border-radius: var(--border-radius); /* Use variable */
+  border: 1px dashed var(--border-color);
+}
+
+.appointments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.appointments-header h2 {
+  margin: 0;
+  border-bottom: none; /* Remove redundant border */
+  padding-bottom: 0;
+  flex: 1;
+  min-width: 250px;
+}
+
+.btn-toggle-appointments {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-toggle-appointments:hover {
+  background-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 768px) {
+  .patient-dashboard {
+    margin: 10px;
+    padding: 15px;
+  }
+  
+  .dashboard-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.6em;
+  }
+  
+  .appointments-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .appointments-header h2 {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .token-legend {
+    justify-content: space-around;
+    gap: 10px;
+  }
+  
+  .token-legend span {
+    font-size: 0.8em;
+    padding: 2px 6px;
+  }
+}
+
+/* Loading states */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-toggle-appointments:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Enhanced focus states for accessibility */
+.token-box:focus {
+  outline: 3px solid rgba(33, 150, 243, 0.5);
+  outline-offset: 2px;
+}
+
+.token-box.available:focus {
+  outline-color: rgba(76, 175, 80, 0.5);
+}
+
+.token-box.booked:focus {
+  outline-color: rgba(244, 67, 54, 0.5);
+}
+
+/* Print styles */
+@media print {
+  .patient-dashboard {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .btn-logout,
+  .btn-primary,
+  .btn-secondary,
+  .btn-toggle-appointments {
+    display: none;
+  }
+  
+  .token-box {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --token-available-bg: #ffffff;
+    --token-available-border: #000000;
+    --token-available-text: #000000;
+    
+    --token-booked-bg: #ffffff;
+    --token-booked-border: #000000;
+    --token-booked-text: #000000;
+    
+    --token-selected-bg: #000000;
+    --token-selected-border: #000000;
+    --token-selected-text: #ffffff;
+  }
+  
+  .token-box {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .token-box,
+  .appointment-card,
+  .btn-primary,
+  .btn-secondary,
+  .btn-toggle-appointments {
+    transition: none;
+  }
+  
+  .token-box.selected {
+    animation: none;
+  }
+  
+  .token-box:hover,
+  .appointment-card:hover {
+    transform: none;
+  }
 }

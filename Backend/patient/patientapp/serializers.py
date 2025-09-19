@@ -22,7 +22,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = [
             "id", "doctor_id", "doctor_name", "doctor_specialization",
             "appointment_date", "appointment_time", "payment_status",
-            "status", "payment_id", "qr_code_url"
+            "token_number","status", "payment_id", "qr_code_url"
         ]
 
     def get_qr_code_url(self, obj):
