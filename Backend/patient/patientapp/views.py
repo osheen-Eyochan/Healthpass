@@ -9,8 +9,7 @@ from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from io import BytesIO
 import qrcode
-from django.http import HttpResponse
-import datetime # Import datetime module
+import datetime
 
 from .models import Patient, Doctor, Appointment
 from .serializers import DoctorSerializer, AppointmentSerializer
@@ -30,10 +29,9 @@ class PatientRegisterView(APIView):
             return Response({"error": "Username already exists"}, status=400)
 
         user = User.objects.create_user(username=username, password=password, email=email)
-        Patient.objects.create(user=user) # Create Patient profile
+        Patient.objects.create(user=user)  # Create patient profile
         token, _ = Token.objects.get_or_create(user=user)
         return Response({"message": "Patient registered successfully", "token": token.key})
-
 
 # ========================
 # Patient Login
@@ -48,24 +46,22 @@ class PatientLoginView(APIView):
         user = authenticate(username=username, password=password)
         if user:
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({"token": token.key, "username": user.username}) # Return username as well
+            return Response({"token": token.key, "username": user.username})
         return Response({"error": "Invalid credentials"}, status=400)
-
 
 # ========================
 # Doctor List
 # ========================
 class DoctorListView(APIView):
-    permission_classes = [AllowAny] # Changed to AllowAny as per your original code
+    permission_classes = [AllowAny]
 
     def get(self, request):
         doctors = Doctor.objects.all()
         serializer = DoctorSerializer(doctors, many=True)
         return Response(serializer.data)
 
-
 # ========================
-# Book Appointment (UPDATED)
+# Book Appointment (auto token assignment)
 # ========================
 class BookAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -73,64 +69,67 @@ class BookAppointmentView(APIView):
     def post(self, request):
         doctor_id = request.data.get('doctor_id')
         appointment_date_str = request.data.get('appointment_date')
-        token_number = request.data.get('token_number')   # ✅ patient selects token
         payment_id = request.data.get('payment_id')
 
-        if not all([doctor_id, appointment_date_str, token_number, payment_id]):
-            return Response({"error": "Missing required fields for booking: doctor_id, appointment_date, token_number, or payment_id."}, status=400)
+        if not all([doctor_id, appointment_date_str, payment_id]):
+            return Response({"error": "Missing required fields: doctor_id, appointment_date, payment_id."}, status=400)
 
+        # Validate doctor
         try:
             doctor = Doctor.objects.get(id=doctor_id)
         except Doctor.DoesNotExist:
             return Response({"error": "Doctor not found."}, status=404)
 
+        # Validate date
         try:
-            appointment_date = datetime.datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
-            token_number = int(token_number)
+            appointment_date = datetime.datetime.strptime(appointment_date_str, "%Y-%m-%d").date()
         except ValueError:
-            return Response({"error": "Invalid date or token number."}, status=400)
+            return Response({"error": "Invalid date format."}, status=400)
 
-        # ----------------------------
-        # Convert token → time slot (example: 15 min each, start 9:00)
-        # ----------------------------
-        start_time = datetime.time(9, 0)  # clinic start time
-        slot_minutes = 15
-        base_datetime = datetime.datetime.combine(appointment_date, start_time)
-        appointment_time = (base_datetime + datetime.timedelta(minutes=(token_number - 1) * slot_minutes)).time()
-
-        # Prevent double booking (same token already used)
-        if Appointment.objects.filter(
+        # Get all booked tokens for this doctor/date
+        booked_tokens = Appointment.objects.filter(
             doctor=doctor,
-            appointment_date=appointment_date,
-            token_number=token_number
-        ).exists():
-            return Response({"error": "This token number is already booked. Please choose another."}, status=400)
+            appointment_date=appointment_date
+        ).values_list('token_number', flat=True)
+
+        # Auto-assign next available token
+        token_number = 1
+        while token_number in booked_tokens:
+            token_number += 1
+
+        if token_number > 26:  # Max 26 tokens per day
+            return Response({"error": "No available tokens for this doctor on selected date."}, status=400)
+
+        # Calculate appointment time based on token
+        all_slots = []
+        for h in range(8, 20):
+            all_slots.append(f"{h:02}:00")
+            all_slots.append(f"{h:02}:30")
+        appointment_time = all_slots[token_number - 1]
 
         try:
             appointment = Appointment.objects.create(
                 patient=request.user.patient,
                 doctor=doctor,
                 appointment_date=appointment_date,
-                appointment_time=appointment_time,  # ✅ auto-calculated
+                appointment_time=appointment_time,
                 token_number=token_number,
                 payment_id=payment_id,
                 status="Confirmed",
                 payment_status="Paid"
             )
-            response_data = AppointmentSerializer(appointment).data
+            serializer = AppointmentSerializer(appointment, context={'request': request})
             return Response({
                 "message": "Appointment booked and paid successfully!",
-                "appointment": response_data,
+                "appointment": serializer.data,
                 "id": appointment.id,
-                "token_number": appointment.token_number
+                "token_number": appointment.token_number,
+                "appointment_time": appointment_time
             }, status=201)
-
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return Response({"error": f"An internal error occurred while creating appointment: {str(e)}"}, status=500)
-
-
+            return Response({"error": f"An internal error occurred: {str(e)}"}, status=500)
 
 # ========================
 # Appointment List
@@ -139,28 +138,26 @@ class AppointmentListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Filter appointments for the authenticated patient
         appointments = Appointment.objects.filter(patient=request.user.patient)
-        serializer = AppointmentSerializer(appointments, many=True)
+        serializer = AppointmentSerializer(appointments, many=True, context={'request': request})
         return Response(serializer.data)
 
-
 # ========================
-# Appointment QR Code (No change needed)
+# Appointment QR Code
 # ========================
 class AppointmentQRCodeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         appointment = get_object_or_404(Appointment, pk=pk, patient=request.user.patient)
-
-        # Data you want to show in QR
         qr_data = {
             "appointment_id": appointment.id,
             "patient_name": appointment.patient.user.username,
             "doctor_name": appointment.doctor.name,
+            "specialization": appointment.doctor.specialization,
             "date": str(appointment.appointment_date),
-            "time": str(appointment.appointment_time)
+            "time": str(appointment.appointment_time),
+            "token": appointment.token_number
         }
 
         img = qrcode.make(qr_data)
@@ -169,9 +166,8 @@ class AppointmentQRCodeView(APIView):
         buffer.seek(0)
         return HttpResponse(buffer, content_type="image/png")
 
-
 # ========================
-# Razorpay Order Creation (No change needed)
+# Razorpay Order Creation
 # ========================
 class CreateRazorpayOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -179,18 +175,14 @@ class CreateRazorpayOrderView(APIView):
     def post(self, request):
         try:
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-            amount = request.data.get("amount")  # amount in smallest currency unit (paise)
-            # Razorpay expects amount in paise, so if frontend sends in rupees, convert it
-            # Your frontend is sending `selectedAmount * 100`, which means it's already in paise.
-            # So `int(amount)` is correct.
+            amount = request.data.get("amount")  # Amount in paise
             order = client.order.create({
                 "amount": int(amount),
                 "currency": "INR",
-                "payment_capture": "1"  # Auto-capture the payment
+                "payment_capture": "1"
             })
             return Response(order)
         except Exception as e:
-            # Log the exception for server-side debugging
             import traceback
             traceback.print_exc()
             return Response({"error": f"Failed to create Razorpay order: {str(e)}"}, status=400)
