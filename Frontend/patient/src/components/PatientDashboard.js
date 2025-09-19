@@ -454,7 +454,7 @@ export default function PatientDashboard() {
                         }
                       >
                         <span className="token-number">{tokenNum}</span>
-                        <span className="token-time">{timeSlot}</span>
+                        
                       </div>
                     );
                   })}
