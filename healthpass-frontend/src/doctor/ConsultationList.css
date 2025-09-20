@@ -1,0 +1,33 @@
+.consultation-list {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.consultation-list h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.consultation-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.consultation-list li {
+  padding: 0.8rem;
+  border-bottom: 1px solid #eee;
+  font-size: 1rem;
+}
+
+.consultation-list li:last-child {
+  border-bottom: none;
+}
+
+.consultation-list li strong {
+  color: #007bff;
+}

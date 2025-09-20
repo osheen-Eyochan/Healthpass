@@ -1,0 +1,123 @@
+/* src/doctor/ConsultationCreate.css */
+
+.consultation-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.consultation-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.patient-details p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.consultation-section {
+  margin: 15px 0;
+}
+
+.consultation-section label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.consultation-section textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.medicine-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.medicine-row input {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.medicine-row button {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.medicine-row button:hover {
+  background: #dc2626;
+}
+
+button.save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px 0;
+  background: #2563eb;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button.save-btn:hover {
+  background: #1e40af;
+}
+
+p.error {
+  color: #b91c1c;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* react-select overrides */
+.css-2b097c-container {
+  width: 100%;
+}
+
+.css-yk16xz-control {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0 4px;
+  min-height: 36px;
+}
+
+.css-1wa3eu0-placeholder {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.css-1okebmr-indicatorSeparator {
+  display: none;
+}
+
+.css-1uccc91-singleValue {
+  font-size: 14px;
+  color: #111827;
+}

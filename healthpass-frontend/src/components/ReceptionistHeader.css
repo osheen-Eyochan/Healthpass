@@ -1,0 +1,46 @@
+.hp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  margin-bottom: 16px;
+}
+
+.hp-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hp-portal {
+  font-weight: 700;
+  color: #111827;
+}
+.hp-greeting {
+  color: #374151;
+}
+
+.hp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hp-clock {
+  font-weight: 600;
+  color: #111827;
+}
+
+.hp-logout {
+  background: #ef4444;
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.hp-logout:hover {
+  background: #dc2626;
+}
