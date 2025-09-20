@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import "./PatientDashboard.css";
 
 // -------------------------
-// Time Slots (08:00 - 19:30)
+// Time Slots (08:00 - 19:30) // change to 
 const allTimeSlots = [];
 for (let h = 8; h < 20; h++) {
   allTimeSlots.push(`${h.toString().padStart(2, "0")}:00`);
@@ -69,6 +69,8 @@ export default function PatientDashboard() {
       const data = await safeFetchJSON("http://127.0.0.1:8000/api/patient/appointments/", {
         headers: { Authorization: `Token ${token}` },
       });
+     
+      console.log(`data fetched ${data}`)
       setAppointments(data);
     } catch (error) {
       console.error(error);
@@ -85,22 +87,41 @@ export default function PatientDashboard() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
   };
 
+  useEffect(() => {
+    console.log(`app : ${JSON.stringify(appointments, null, 2)}-->`)
+  }, [formData,appointments])
   // Booked tokens for selected doctor/date
-  const bookedTokensForSelectedDoctorDate =
-    formData.doctor_id && formData.appointment_date
-      ? appointments
-          .filter(
-            (appt) =>
-              appt.doctor?.id === parseInt(formData.doctor_id) &&
-              appt.appointment_date === formData.appointment_date
-          )
-          .map((appt) => appt.token_number)
-      : [];
+  // const bookedTokensForSelectedDoctorDate =
+  //   formData.doctor_id && formData.appointment_date
+    
+  //     ? appointments
+  //         .filter(
+  //           (appt) =>
+  //             appt.doctor?.id === parseInt(formData.doctor_id) &&
+  //             appt.appointment_date === formData.appointment_date
+  //         )
+  //         .map((appt) => appt.token_number)
+  //     : [];
+const selectedDoctor = doctors.find(d => d.id === parseInt(formData.doctor_id));
+
+const bookedTokensForSelectedDoctorDate =
+  formData.doctor_id && formData.appointment_date && selectedDoctor
+    ? appointments
+        .filter((appt) => {
+          const apptDate = appt.appointment_date.split("T")[0]; // normalize date
+          return appt.doctor_name === selectedDoctor.name &&
+                 apptDate === formData.appointment_date;
+        })  
+        .map((appt) => Number(appt.token_number))
+    : [];
+
 
   // Auto-assigned token (next available)
   const autoTokenNumber = (() => {
+    console.log(bookedTokensForSelectedDoctorDate)
     if (!formData.doctor_id || !formData.appointment_date) return null;
     let token = 1;
     while (bookedTokensForSelectedDoctorDate.includes(token)) token++;
@@ -132,6 +153,8 @@ export default function PatientDashboard() {
           headers: { "Content-Type": "application/json", Authorization: `Token ${token}` },
           body: JSON.stringify({ amount: selectedAmount * 100 }),
         }
+
+      
       );
 
       const options = {
@@ -157,6 +180,7 @@ export default function PatientDashboard() {
             );
 
             setMessage(`✅ Appointment booked! Token: ${booked.token_number}`);
+            
             fetchAppointments();
           } catch (err) {
             console.error(err);
@@ -265,6 +289,7 @@ export default function PatientDashboard() {
                     const isBooked = bookedTokensForSelectedDoctorDate.includes(tokenNum);
                     const isAuto = tokenNum === autoTokenNumber;
                     const boxClass = isBooked ? "booked" : isAuto ? "selected" : "available";
+                    console.log(tokenNum, isBooked, isAuto, boxClass);
                     return (
                       <div key={index} className={`token-box ${boxClass}`}>
                         <span className="token-number">{tokenNum}</span>
