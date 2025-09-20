@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HealthPass Payment</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <h2>💳 HealthPass Payment Test</h2>
+  <button id="payBtn">Pay Now</button>
+
+  <script>
+    document.getElementById("payBtn").onclick = async function () {
+      try {
+        // ✅ Call Django API
+        const response = await fetch("http://127.0.0.1:8000/api/pharmacy/create-order/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 500 }) // INR
+        });
+
+        const order = await response.json();
+        console.log("Order Response:", order);
+
+        if (order.error) {
+          alert("Error: " + order.error);
+          return;
+        }
+
+        const options = {
+          key: order.key,
+          amount: order.amount,
+          currency: order.currency,
+          name: "HealthPass",
+          description: "Test Transaction",
+          order_id: order.order_id,
+          handler: async function (response) {
+            console.log("Payment Response:", response);
+            const verify = await fetch("http://127.0.0.1:8000/api/pharmacy/verify-payment/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response)
+            });
+            const result = await verify.json();
+            alert(result.status);
+          },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Something went wrong: " + err.message);
+      }
+    };
+  </script>
+</body>
+</html>
