@@ -1,33 +1,44 @@
+// src/receptionist/ReceptionistLogin.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./ReceptionistLogin.css"; // ✅ Import CSS
+import "./ReceptionistLogin.css"; // your CSS
 
 const ReceptionistLogin = () => {
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(""); // required field
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    if (!username || !password) {
+      setMessage("Username and password are required");
+      return;
+    }
+
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/receptionist/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/receptionist/login/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        }
+      );
 
       const data = await response.json();
 
       if (data.success) {
-        // ✅ Store receptionist in the same key used by Dashboard
+        // Store receptionist info in localStorage
         localStorage.setItem("receptionist", JSON.stringify(data));
 
-        // ✅ Redirect to the same path used in App.js
+        // Navigate to dashboard
         navigate("/receptionist/dashboard");
       } else {
-        setMessage("Login failed. Please check your username and password.");
+        setMessage(
+          "Login failed. Please check your username and password."
+        );
       }
     } catch (error) {
       setMessage("Error connecting to backend");
@@ -39,7 +50,10 @@ const ReceptionistLogin = () => {
     <div className="receptionist-login-container">
       <div className="receptionist-login-card">
         <h2>Receptionist Login</h2>
-        <form onSubmit={handleLogin} className="receptionist-login-form">
+        <form
+          onSubmit={handleLogin}
+          className="receptionist-login-form"
+        >
           <input
             type="text"
             placeholder="Username"
@@ -49,7 +63,7 @@ const ReceptionistLogin = () => {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password (simple passwords allowed)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

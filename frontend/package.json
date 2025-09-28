@@ -14,15 +14,16 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
+    "react-qr-scanner": "^1.0.0-alpha.11",
     "react-router-dom": "^7.9.3",
     "react-scripts": "5.0.1",
     "react-select": "^5.10.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-  "start": "react-scripts start --no-source-maps",
-  "build": "react-scripts build --no-source-maps",
-  "test": "react-scripts test"
+    "start": "react-scripts start --no-source-maps",
+    "build": "react-scripts build --no-source-maps",
+    "test": "react-scripts test"
   },
   "eslintConfig": {
     "extends": [
@@ -41,5 +42,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13"
   }
 }
