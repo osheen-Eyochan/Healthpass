@@ -21,6 +21,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'patientapp',
+    'receptionist',
+    'doctor',
+    'pharmacy',  
 ]
 
 MIDDLEWARE = [
@@ -57,16 +60,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'healthpass_db',        # your database name in MySQL
-        'USER': 'root',              # your MySQL username
-        'PASSWORD': 'root',  # your MySQL password
-        'HOST': 'localhost',         # or '127.0.0.1'
-        'PORT': '3306',              # default MySQL port
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
+        'NAME': 'healthpassproject_db',
+        'USER': 'root',
+        'PASSWORD': 'esho',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
-}
+ }
+
 
 
 AUTH_PASSWORD_VALIDATORS = [

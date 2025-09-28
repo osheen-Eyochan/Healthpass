@@ -1,0 +1,104 @@
+/* AppointmentDetails.css */
+
+/* General container */
+.appointment-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+}
+
+/* Centered text */
+.center-text {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+/* Error text */
+.error-text {
+  color: #d9534f;
+  font-weight: 500;
+}
+
+/* QR Scanner container */
+.qr-scanner-container {
+  margin-bottom: 20px;
+  border: 2px dashed #007bff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* Appointment card */
+.appointment-card {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid for labels and values */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px 15px;
+  margin-bottom: 20px;
+}
+
+/* Labels */
+.label {
+  font-weight: 600;
+  color: #555;
+}
+
+/* Values */
+.value {
+  color: #333;
+}
+
+/* Status styles */
+.status-checked-in {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+/* Checked-in yes/no */
+.checked-yes {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.checked-no {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Check-in button */
+.checkin-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.checkin-button:hover {
+  background-color: #0056b3;
+}
+
+.checkin-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}

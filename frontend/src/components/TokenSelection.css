@@ -1,0 +1,56 @@
+/* TokenSelection.css */
+
+div {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h3 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+input[type="date"] {
+  padding: 8px 10px;
+  margin-right: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 8px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4a90e2;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #357ab8;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+h4 {
+  margin-top: 15px;
+  color: #555;
+}
+
+p {
+  margin-top: 15px;
+  font-weight: 500;
+  text-align: center;
+  color: #e74c3c; /* red for error, can adjust dynamically */
+}

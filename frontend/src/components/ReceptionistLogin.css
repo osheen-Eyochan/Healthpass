@@ -1,0 +1,66 @@
+.receptionist-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa, #bbdefb); /* soft pastel hospital blue */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.receptionist-login-card {
+  background: #ffffff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  text-align: center;
+}
+
+.receptionist-login-card h2 {
+  margin-bottom: 20px;
+  color: #1d3557;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.receptionist-login-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: #f9fafb;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.receptionist-login-form input:focus {
+  border-color: #5dade2;
+  box-shadow: 0px 0px 6px rgba(93, 173, 226, 0.3);
+  background: #ffffff;
+}
+
+.receptionist-login-card button {
+  width: 100%;
+  padding: 12px;
+  background: #5dade2; /* pastel blue */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.receptionist-login-card button:hover {
+  background: #4a90e2; /* slightly darker on hover */
+}
+
+.receptionist-error {
+  color: #e63946;
+  font-size: 14px;
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 500;
+}

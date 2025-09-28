@@ -1,0 +1,108 @@
+/* AppointmentsTable.css */
+.appt-container {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #eee;
+}
+
+.tab {
+  padding: 8px 14px;
+  cursor: pointer;
+  color: #555;
+  background: transparent;
+  border: none;
+  font-weight: 600;
+}
+
+.tab.active {
+  color: #0b5ed7;
+  border-bottom: 3px solid #0b5ed7;
+}
+
+.search-bar {
+  margin: 12px 0 16px 0;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.table-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  border: 1px solid #eee;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  padding: 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 700;
+  color: #333;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #f6f6f6;
+  color: #333;
+}
+
+tr:hover {
+  background: #fcfcfd;
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px 0;
+  color: #666;
+}
+
+/* buttons */
+.details-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #0b5ed7;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.details-btn:hover { opacity: 0.95; }
+
+/* Status badges */
+.status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* colors for statuses */
+.status.scheduled { background: #e7f0ff; color: #0646a6; }
+.status.checked_in { background: #dff3e6; color: #0b6b2f; }
+.status.in_consultation { background: #fff7e6; color: #9a5a00; }
+.status.completed { background: #f0f2f5; color: #2d3748; }
+
+/* small info/error */
+.info { padding: 12px; color: #666; text-align: center; }
+.error { padding: 12px; color: #b91c1c; text-align: center; }

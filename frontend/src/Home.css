@@ -1,0 +1,64 @@
+/* Home.css */
+
+/* Page background */
+.home-container {
+  text-align: center;
+  padding: 60px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #e8f0ff, #fceeff);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title */
+.home-container h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+/* Subtitle */
+.home-container p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+/* Portal button container */
+.portal-buttons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Common button styles */
+.btn {
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Receptionist Portal button */
+.receptionist-btn {
+  background: linear-gradient(135deg, #6a11cb, #2575fc); /* purple → blue */
+}
+
+/* Doctor Portal button */
+.doctor-btn {
+  background: linear-gradient(135deg, #ff6a88, #ff99ac); /* soft pink gradient */
+}
+
+/* Hover effect */
+.btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
