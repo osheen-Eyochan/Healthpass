@@ -33,6 +33,7 @@ class Patient(models.Model):
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
     email = models.EmailField(unique=True)
+    token = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -54,7 +55,7 @@ PAYMENT_CHOICES = [
 ]
 
 class Appointment(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True)
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, null=True, blank=True)
     doctor = models.ForeignKey('doctor.Doctor', on_delete=models.CASCADE, null=True, blank=True)
     patient_name = models.CharField(max_length=255, blank=True)
     doctor_name = models.CharField(max_length=255, blank=True)
@@ -63,10 +64,45 @@ class Appointment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
     payment_status = models.CharField(max_length=10, choices=PAYMENT_CHOICES, default='pending')
     checked_in = models.BooleanField(default=False)
+    token = models.PositiveIntegerField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        # Sync patient_name and doctor_name
         if self.patient:
             self.patient_name = self.patient.name
         if self.doctor:
             self.doctor_name = self.doctor.full_name
-        super().save(*args, **kwargs)
+
+        super().save(*args, **kwargs)  # Save first to get ID
+
+        # Reassign tokens for all appointments of this doctor on this date
+        if self.doctor and self.date:
+            appointments = Appointment.objects.filter(
+                doctor=self.doctor,
+                date=self.date
+            ).order_by('time', 'id')
+
+            for idx, appt in enumerate(appointments, start=1):
+                if appt.token != idx:
+                    appt.token = idx
+                    super(Appointment, appt).save(update_fields=['token'])
+
+    def delete(self, *args, **kwargs):
+        doctor = self.doctor
+        date = self.date
+        super().delete(*args, **kwargs)
+
+        # Reorder tokens after deletion
+        if doctor and date:
+            appointments = Appointment.objects.filter(
+                doctor=doctor,
+                date=date
+            ).order_by('time', 'id')
+
+            for idx, appt in enumerate(appointments, start=1):
+                if appt.token != idx:
+                    appt.token = idx
+                    super(Appointment, appt).save(update_fields=['token'])
+
+    def __str__(self):
+        return f"{self.patient_name or 'Unknown'} with {self.doctor_name or 'Unknown'} on {self.date or 'N/A'} at {self.time or 'N/A'}"

@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
+
 // ================= Patient Components =================
 import PatientLogin from "./components/patient/PatientLogin";
 import PatientRegister from "./components/patient/PatientRegister";
@@ -71,11 +72,9 @@ function App() {
         />
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
         <Route path="/doctor/consultations" element={<ConsultationList />} />
-        <Route path="/doctor/consultations/new" element={<ConsultationCreate />} />
-        <Route
-          path="/doctor/consultations/create/:patientId/:patientName"
-          element={<ConsultationCreate />}
-        />
+
+        {/* ✅ Updated route – no params, uses state instead */}
+        <Route path="/doctor/consultation" element={<ConsultationCreate />} />
 
         {/* ========== Pharmacy Routes ========== */}
         <Route path="/pharmacy/login" element={<PharmacyLogin />} />

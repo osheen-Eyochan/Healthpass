@@ -1,123 +1,195 @@
-/* src/doctor/ConsultationCreate.css */
-
+/* ---------------------------
+   Consultation Container
+---------------------------- */
 .consultation-container {
   max-width: 900px;
   margin: 20px auto;
   padding: 20px;
-  background: #f9fafb;
+  background: #f9f9f9;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   font-family: Arial, sans-serif;
+
+  overflow-y: auto;   /* vertical scrolling */
+  max-height: 90vh;   /* limit container height */
 }
 
-.consultation-container h2 {
-  text-align: center;
+/* ---------------------------
+   Patient Header
+---------------------------- */
+.patient-header {
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
   margin-bottom: 20px;
-  color: #1f2937;
 }
 
-.patient-details p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #374151;
+.patient-header h2 {
+  margin: 0;
+  color: #333;
 }
 
-.consultation-section {
-  margin: 15px 0;
+.patient-header p {
+  margin: 5px 0 0 0;
+  color: #666;
 }
 
-.consultation-section label {
-  display: block;
+/* ---------------------------
+   History Section
+---------------------------- */
+.history {
+  margin-bottom: 20px;
+}
+
+.history h4 {
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.history ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.history li {
   margin-bottom: 5px;
-  font-weight: 600;
-  color: #1f2937;
+  color: #555;
 }
 
-.consultation-section textarea {
+/* ---------------------------
+   Notes Section
+---------------------------- */
+.notes-section {
+  margin-bottom: 20px;
+}
+
+.notes-section textarea {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #d1d5db;
+  min-height: 80px;
+  padding: 10px;
   border-radius: 8px;
-  font-size: 14px;
+  border: 1px solid #ccc;
   resize: vertical;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
-.medicine-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
-  gap: 8px;
+/* ---------------------------
+   Prescriptions Section
+---------------------------- */
+.prescriptions-section {
+  margin-bottom: 20px;
+  overflow-x: auto; /* horizontal scroll if table too wide */
+}
+
+.prescriptions-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.prescriptions-section th,
+.prescriptions-section td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.prescriptions-section th {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.prescriptions-section input,
+.prescriptions-section select {
+  width: 100%;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.prescriptions-section button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.prescriptions-section button:hover {
+  background-color: #0056b3;
+}
+
+/* Add Medicine Button */
+.prescriptions-section > button {
+  margin-top: 8px;
+}
+
+/* ---------------------------
+   Follow-up Section
+---------------------------- */
+.follow-up-section {
+  margin-bottom: 20px;
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 10px;
 }
 
-.medicine-row input {
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
+.follow-up-section input[type="date"] {
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-.medicine-row button {
-  background: #ef4444;
-  color: #fff;
+/* ---------------------------
+   Save Button
+---------------------------- */
+.save-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 18px;
   border: none;
-  padding: 6px 10px;
   border-radius: 8px;
+  font-size: 15px;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-.medicine-row button:hover {
-  background: #dc2626;
-}
-
-button.save-btn {
+  transition: background-color 0.2s ease;
   display: block;
-  width: 100%;
-  margin-top: 20px;
-  padding: 10px 0;
-  background: #2563eb;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s;
+  margin-top: 15px;
 }
 
-button.save-btn:hover {
-  background: #1e40af;
+.save-btn:hover {
+  background-color: #1e7e34;
 }
 
-p.error {
-  color: #b91c1c;
-  font-weight: 600;
-  margin-top: 10px;
+/* ---------------------------
+   QR Code Section
+---------------------------- */
+.qr-code-section {
+  margin-top: 25px;
+  text-align: center;
 }
 
-/* react-select overrides */
-.css-2b097c-container {
-  width: 100%;
+.qr-code-section h4 {
+  margin-bottom: 10px;
+  color: #333;
 }
 
-.css-yk16xz-control {
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 0 4px;
-  min-height: 36px;
-}
+/* ---------------------------
+   Responsive Adjustments
+---------------------------- */
+@media (max-width: 600px) {
+  .prescriptions-section table,
+  .prescriptions-section th,
+  .prescriptions-section td {
+    font-size: 12px;
+    padding: 4px;
+  }
 
-.css-1wa3eu0-placeholder {
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.css-1okebmr-indicatorSeparator {
-  display: none;
-}
-
-.css-1uccc91-singleValue {
-  font-size: 14px;
-  color: #111827;
+  .save-btn {
+    width: 100%;
+    padding: 10px;
+  }
 }

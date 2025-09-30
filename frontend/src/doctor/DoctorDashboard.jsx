@@ -1,163 +1,148 @@
-import React, { useState, useEffect } from "react";
+// src/doctor/DoctorDashboard.jsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./DoctorDashboard.css";
 
 function DoctorDashboard() {
-  const [doctorInfo, setDoctorInfo] = useState({});
+  const navigate = useNavigate();
+  const doctorInfo = JSON.parse(localStorage.getItem("doctorInfo"));
+  const doctorId = doctorInfo?.id;
+  const doctorName = doctorInfo?.name || "Doctor";
+
+  const [stats, setStats] = useState({
+    total_appointments: 0,
+    patients_checked_in: 0,
+    completed_consultations: 0,
+  });
   const [appointments, setAppointments] = useState([]);
-  const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const doctorId = localStorage.getItem("doctor_id");
     if (!doctorId) {
-      setError("Doctor ID not found. Please login again.");
-      setLoading(false);
+      navigate("/doctor/login", { replace: true });
       return;
     }
 
     const fetchDashboard = async () => {
       try {
-        // 1️⃣ Fetch doctor stats
-        const statsResp = await fetch(
+        // Fetch dashboard stats
+        const { data: dashboardData } = await axios.get(
           `http://127.0.0.1:8000/api/doctor/${doctorId}/dashboard/`
         );
-        if (!statsResp.ok) throw new Error(`Server error: ${statsResp.status}`);
-        const statsData = await statsResp.json();
+        setStats(dashboardData);
 
-        if (statsData.success) {
-          setStats({
-            total_appointments: statsData.total_appointments,
-            patients_checked_in: statsData.patients_checked_in,
-            completed_consultations: statsData.completed_consultations,
-          });
-        } else {
-          setError("Failed to load dashboard stats.");
-        }
-
-        // 2️⃣ Fetch upcoming/checked-in appointments
-        const apptResp = await fetch(
+        // Fetch upcoming appointments
+        const { data: apptData } = await axios.get(
           `http://127.0.0.1:8000/api/doctor/${doctorId}/appointments/`
         );
-        if (!apptResp.ok) throw new Error(`Server error: ${apptResp.status}`);
-        const apptData = await apptResp.json();
 
-        if (apptData.success) {
-          // Map appointments with date/time
-          const appts = apptData.appointments.map((appt) => ({
-            id: appt.id,
-            patient_name: appt.patient_name,
-            date: appt.date,
-            time: appt.time,
-            status: appt.status,
-          }));
-          setAppointments(appts);
-        } else {
-          setError("Failed to load appointments.");
-        }
+        // Extract appointments array safely
+        const appointmentsArray = Array.isArray(apptData)
+          ? apptData
+          : apptData.appointments || [];
 
-        // 3️⃣ Optionally set doctorInfo from localStorage
-        setDoctorInfo({
-          full_name: localStorage.getItem("doctor_name"),
-          email: localStorage.getItem("doctor_email"),
-        });
+        // Normalize data for frontend
+        const cleanedAppointments = appointmentsArray.map((a) => ({
+          ...a,
+          patient_id:
+            a.patient_id || (a.patient && typeof a.patient === "object" ? a.patient.id : null),
+          patient_name:
+            a.patient_name || (a.patient && typeof a.patient === "object" ? a.patient.name : "Unknown"),
+        }));
 
+        setAppointments(cleanedAppointments);
       } catch (err) {
         console.error(err);
-        setError("Error fetching dashboard data. Please try again later.");
+        setError("Failed to fetch dashboard or appointments.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboard();
-  }, []);
+  }, [doctorId, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("doctor_id");
-    localStorage.removeItem("doctor_name");
-    localStorage.removeItem("doctor_email");
-    navigate("/doctor/login");
+    localStorage.removeItem("doctorToken");
+    localStorage.removeItem("doctorInfo");
+    navigate("/doctor/login", { replace: true });
   };
 
-  const startConsultation = (patientId, patientName) => {
-    navigate(`/doctor/consultations/create/${patientId}/${patientName}`);
+  const startConsultation = (appointment) => {
+    if (!appointment?.patient_id) {
+      alert("Patient ID missing! Cannot start consultation.");
+      console.log("Missing patient ID:", appointment);
+      return;
+    }
+    navigate("/doctor/consultation", { state: { appointment } });
   };
 
-  if (loading) return <p className="loading">Loading dashboard...</p>;
-  if (error) return <p className="error">{error}</p>;
+  if (loading) return <div>Loading dashboard...</div>;
+  if (error) return <div style={{ color: "red" }}>{error}</div>;
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h2>Welcome, {doctorInfo.full_name || "Doctor"}</h2>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
+    <div className="doctor-dashboard-container">
+      <div className="dashboard-header">
+        <h2>Welcome, {doctorName}</h2>
+        <button onClick={handleLogout}>Logout</button>
+      </div>
 
-      <section className="dashboard-stats">
-        <h3>Stats</h3>
-        <div className="stats-cards">
-          <div className="stat-card">
-            <h4>Total Appointments</h4>
-            <p>{stats.total_appointments || 0}</p>
-          </div>
-          <div className="stat-card">
-            <h4>Patients Checked-In</h4>
-            <p>{stats.patients_checked_in || 0}</p>
-          </div>
-          <div className="stat-card">
-            <h4>Completed Consultations</h4>
-            <p>{stats.completed_consultations || 0}</p>
-          </div>
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <h3>Total Appointments</h3>
+          <p>{stats.total_appointments}</p>
         </div>
-      </section>
+        <div className="stat-card">
+          <h3>Patients Checked In</h3>
+          <p>{stats.patients_checked_in}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Completed Consultations</h3>
+          <p>{stats.completed_consultations}</p>
+        </div>
+      </div>
 
-      <section className="upcoming-patients">
-        <h3>Checked-In Patients</h3>
-        {appointments.length === 0 ? (
-          <p>No patients checked in yet.</p>
-        ) : (
-          <table className="patient-table">
+      <div className="appointments-section">
+        <h3>Upcoming Appointments</h3>
+        {appointments.length > 0 ? (
+          <table>
             <thead>
               <tr>
-                <th>Name</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th>Patient</th>
                 <th>Status</th>
+                <th>Token</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {appointments.map((appt) => (
                 <tr key={appt.id}>
-                  <td>{appt.patient_name}</td>
                   <td>{appt.date}</td>
                   <td>{appt.time}</td>
+                  <td>{appt.patient_name}</td>
+                  <td>{appt.status}</td>
+                  <td>{appt.token || "-"}</td>
                   <td>
-                    <span className={`status ${appt.status.replace(" ", "-")}`}>
-                      {appt.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="consult-btn"
-                      onClick={() =>
-                        startConsultation(appt.id, appt.patient_name)
-                      }
-                    >
-                      Start Consultation
-                    </button>
+                    {appt.status === "checked_in" ? (
+                      <button onClick={() => startConsultation(appt)}>
+                        Start Consultation
+                      </button>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        ) : (
+          <p>No upcoming appointments.</p>
         )}
-      </section>
+      </div>
     </div>
   );
 }

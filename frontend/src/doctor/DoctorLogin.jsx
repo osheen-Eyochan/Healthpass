@@ -1,12 +1,14 @@
 // src/doctor/DoctorLogin.jsx
 import React, { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./DoctorLogin.css"; // optional CSS
+import "./DoctorLogin.css";
 
 function DoctorLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -14,64 +16,58 @@ function DoctorLogin() {
     setError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/doctor/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/doctor/login/",
+        { username, password }
+      );
 
-      if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
-      }
+      if (response.data.success) {
+        // Save doctor info & token to localStorage
+        localStorage.setItem(
+          "doctorInfo",
+          JSON.stringify({
+            id: response.data.doctor_id,
+            name: response.data.full_name,
+          })
+        );
+        localStorage.setItem("doctorToken", response.data.token);
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Store doctor info in localStorage
-        localStorage.setItem("doctor_id", data.doctor_id);
-        localStorage.setItem("doctor_name", data.full_name);
-        localStorage.setItem("doctor_email", data.email);
-
-        // Redirect to dashboard
-        navigate("/doctor/dashboard");
+        // Navigate to dashboard
+        navigate("/doctor/dashboard", { replace: true });
       } else {
-        setError("Invalid username or password.");
+        setError(response.data.error || "Login failed");
       }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Failed to login. Please try again later.");
+      console.error("Login Axios error:", err.toJSON ? err.toJSON() : err);
+      setError("Error connecting to backend");
     }
   };
 
   return (
     <div className="doctor-login-container">
-      <h2>Doctor Login</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div className="form-group">
-          <label>Username:</label>
+      <div className="doctor-login-card">
+        <h2 className="doctor-login-heading">Doctor Login</h2>
+
+        <form className="doctor-login-form" onSubmit={handleLogin}>
           <input
             type="text"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-        </div>
-
-        <div className="form-group">
-          <label>Password:</label>
           <input
             type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
+          <button type="submit">Login</button>
+        </form>
 
-        <button type="submit" className="login-btn">
-          Login
-        </button>
-      </form>
+        {error && <div className="doctor-error">{error}</div>}
+      </div>
     </div>
   );
 }
