@@ -3,6 +3,8 @@ from django.utils import timezone
 from io import BytesIO
 from django.core.files import File
 import qrcode
+from django.contrib import admin
+
 
 
 class Patient(models.Model):
@@ -105,3 +107,14 @@ class Token(models.Model):
                 "total": float(item.total_price())
             })
         return meds
+    
+class Doctor(models.Model):
+    name = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=100)
+    phone = models.CharField(max_length=15, unique=True)
+    email = models.EmailField(unique=True)
+    available_from = models.TimeField()
+    available_to = models.TimeField()
+
+    def __str__(self):
+        return f"{self.name} - {self.specialization}"

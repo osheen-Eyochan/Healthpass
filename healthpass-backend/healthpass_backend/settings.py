@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',   # ✅ Added for DRF
     'pharmacy',         # ✅ Your app
+    
 ]
 
 MIDDLEWARE = [

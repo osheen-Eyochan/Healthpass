@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Patient, Medicine, Prescription, PrescriptionItem, Token
-
+from .models import Doctor
 # ===================== Patient Admin =====================
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
@@ -56,3 +56,8 @@ class TokenAdmin(admin.ModelAdmin):
     list_display = ('id', 'token_number', 'patient', 'is_completed', 'qr_code')
     search_fields = ('token_number', 'patient__name')
     list_filter = ('is_completed',)
+
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ("name", "specialization", "phone", "email", "available_from", "available_to")
+    search_fields = ("name", "specialization")
