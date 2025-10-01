@@ -13,4 +13,9 @@ urlpatterns = [
 
     # Dashboard stats
     path('dashboard-stats/', views.dashboard_stats, name='dashboard_stats'),
+
+    path('appointments/', views.all_appointments, name='all_appointments'),
+
+     path('scan/<int:qr_value>/', views.scan_appointment, name='scan_appointment'),
+
 ]

@@ -1,6 +1,8 @@
+// src/receptionist/QrModal.jsx
 import React, { useState, useRef } from "react";
 import QrScanner from "./QrScanner";
 import axios from "axios";
+import "./QrModal.css";
 
 const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
   const [appointment, setAppointment] = useState(null);
@@ -20,28 +22,25 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `http://127.0.0.1:8000/api/receptionist/appointment/${appointmentId}/`
+        `http://127.0.0.1:8000/api/receptionist/scan/${appointmentId}/`
       );
 
-      if (res.data.success) {
-        setAppointment(res.data.appointment);
+      setAppointment(res.data);
 
-        // Stop scanner safely after scan
-        setTimeout(() => {
-          scannerRef.current?.stopScanner().catch(() => {});
-        }, 100);
-      } else {
-        alert(res.data.message || "Appointment not found");
-        setAppointment(null);
+      // Stop scanner safely
+      try {
+        scannerRef.current?.stopScanner?.();
+      } catch (err) {
+        console.warn("Failed to stop scanner:", err);
       }
+
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch appointment.");
+      alert(err.response?.data?.error || "Failed to fetch appointment.");
       setAppointment(null);
     } finally {
       setLoading(false);
     }
-    
   };
 
   // Confirm & Check-In
@@ -51,129 +50,87 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
 
     try {
       const res = await axios.post(
-        `http://127.0.0.1:8000/api/receptionist/appointment/${appointment.id}/checkin/`
+        `http://127.0.0.1:8000/api/receptionist/appointment/${appointment.appointment_id}/checkin/`
       );
 
       if (res.data.success) {
-        setAppointment({
-          ...res.data.appointment,
-          checked_in: res.data.appointment.checked_in,
-          status: res.data.appointment.status,
-        });
-
+        setAppointment(res.data.appointment);
         alert("Patient checked in successfully!");
-        onCheckInSuccess?.();
+        onCheckInSuccess?.(res.data.appointment);
       } else {
         alert(res.data.message || "Check-in failed.");
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to check in.");
+      alert(err.response?.data?.error || "Failed to check in.");
     } finally {
       setCheckingIn(false);
     }
   };
 
   // Close modal
-  const handleClose = async () => {
-    await scannerRef.current?.stopScanner().catch(() => {});
+  const handleClose = () => {
+    try {
+      scannerRef.current?.stopScanner?.();
+    } catch {}
     setAppointment(null);
     onClose();
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          padding: "20px",
-          borderRadius: "10px",
-          width: "80%",
-          maxWidth: "800px",
-          display: "flex",
-          gap: "20px",
-        }}
-      >
-        {/* Left: QR Scanner */}
-        <div
-          style={{
-            flex: 1,
-            minWidth: "300px",
-            minHeight: "400px", // fixed height
-            borderRight: "1px solid #ddd",
-            paddingRight: "15px",
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ display: appointment ? "none" : "block" }}>
-            <h3>Scan QR Code</h3>
-            <QrScanner ref={scannerRef} onScan={handleScan} />
-          </div>
+    <div className="qr-modal-overlay">
+      <div className="qr-modal-content">
+        {/* QR Scanner */}
+        <div className="qr-scanner-container">
+          {!appointment && (
+            <>
+              <h3>Scan QR Code</h3>
+              <QrScanner ref={scannerRef} onScan={handleScan} />
+              <p className="qr-instructions">
+                Point your camera at the patient QR code
+              </p>
+            </>
+          )}
         </div>
 
-        {/* Right: Appointment Details */}
-        <div style={{ flex: 1, minWidth: "300px" }}>
+        {/* Appointment Details */}
+        <div className="qr-appointment-details">
           {loading && <p>Loading...</p>}
+
           {appointment ? (
             <>
               <h3>Appointment Details</h3>
-              <p><b>ID:</b> {appointment.id}</p>
-              <p><b>Patient:</b> {appointment.patient_name}</p>
-              <p><b>Age:</b> {appointment.age}</p>
-              <p><b>Gender:</b> {appointment.gender}</p>
-              <p><b>Doctor:</b> {appointment.doctor_name}</p>
-              <p><b>Specialization:</b> {appointment.specialization}</p>
-              <p><b>Date:</b> {appointment.date}</p>
-              <p><b>Time:</b> {appointment.time}</p>
-              <p><b>Status:</b> {appointment.status}</p>
+              <p><b>ID:</b> {appointment.appointment_id}</p>
+              <p><b>Patient:</b> {appointment.patient_name || "N/A"}</p>
+              <p><b>Age:</b> {appointment.age || "N/A"}</p>
+              <p><b>Gender:</b> {appointment.gender || "N/A"}</p>
+              <p><b>Doctor:</b> {appointment.doctor_name || "N/A"}</p>
+              <p><b>Specialization:</b> {appointment.specialization || "N/A"}</p>
+              <p><b>Date:</b> {appointment.date || "N/A"}</p>
+              <p><b>Time:</b> {appointment.time || "N/A"}</p>
+              <p><b>Status:</b> {appointment.status || "N/A"}</p>
               <p><b>Checked-In:</b> {appointment.checked_in ? "Yes" : "No"}</p>
 
               {!appointment.checked_in && (
                 <button
+                  className="qr-confirm-btn qr-modal-button"
                   onClick={handleConfirm}
                   disabled={checkingIn}
-                  style={{
-                    marginTop: "15px",
-                    padding: "8px 16px",
-                    background: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: checkingIn ? "not-allowed" : "pointer",
-                  }}
                 >
                   {checkingIn ? "Checking In..." : "Confirm Check-In"}
                 </button>
               )}
 
               <button
+                className="qr-close-btn qr-modal-button"
                 onClick={handleClose}
-                style={{
-                  marginTop: "10px",
-                  padding: "8px 16px",
-                  background: "#dc3545",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
               >
                 Close
               </button>
             </>
-          ) : (
+          ) : !loading ? (
             <p>Scan a QR code to fetch appointment details.</p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

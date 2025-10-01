@@ -1,0 +1,300 @@
+/* -----------------------------
+  Dashboard Container
+----------------------------- */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* -----------------------------
+  Dashboard Title
+----------------------------- */
+.dashboard-title {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #1f2937;
+}
+
+/* -----------------------------
+  Quick Stats Cards
+----------------------------- */
+.stats-container {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.quick-stat-card {
+  padding: 25px 20px;
+  border-radius: 12px;
+  min-width: 180px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.quick-stat-card h3 {
+  font-size: 28px;
+  margin: 0;
+}
+
+.quick-stat-card p {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Quick Stat Colors */
+.quick-stat-card.blue {
+  background-color: #3b82f6;
+}
+
+.quick-stat-card.green {
+  background-color: #10b981;
+}
+
+.quick-stat-card.yellow {
+  background-color: #f59e0b;
+}
+
+/* Hover Effect */
+.quick-stat-card:hover {
+  transform: scale(1.05);
+}
+
+/* -----------------------------
+  Scan Button
+----------------------------- */
+.scan-btn-container {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.scan-btn {
+  padding: 15px 35px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.scan-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* -----------------------------
+  Appointment Cards
+----------------------------- */
+.appointments-container {
+  margin-top: 20px;
+}
+
+.appointments-title {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+.appointment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: #fff;
+  padding: 20px;
+  margin: 15px auto;
+  max-width: 900px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.appointment-card:hover {
+  transform: scale(1.02);
+}
+
+.appointment-info p {
+  margin: 5px 0;
+}
+
+.appointment-status {
+  text-align: right;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Status Colors */
+.status-green {
+  background-color: #10b981;
+}
+
+.status-yellow {
+  background-color: #f59e0b;
+}
+
+.status-red {
+  background-color: #ef4444;
+}
+/* -----------------------------
+  QR Modal Overlay
+----------------------------- */
+.qr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(31, 41, 55, 0.7); /* dark semi-transparent */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+/* -----------------------------
+  QR Modal Content Box
+----------------------------- */
+.qr-modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  display: flex;
+  gap: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+}
+
+/* -----------------------------
+  Left: QR Scanner
+----------------------------- */
+.qr-scanner-container {
+  flex: 1;
+  min-width: 300px;
+  min-height: 400px;
+  border-right: 1px solid #ddd;
+  padding-right: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-scanner-container h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+/* -----------------------------
+  Right: Appointment Details
+----------------------------- */
+.qr-appointment-details {
+  flex: 1;
+  min-width: 300px;
+}
+
+.qr-appointment-details h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+.qr-appointment-details p {
+  margin: 6px 0;
+}
+
+/* -----------------------------
+  Buttons
+----------------------------- */
+.qr-modal-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.qr-confirm-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.qr-confirm-btn:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+.qr-close-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.qr-close-btn:hover {
+  background-color: #b91c1c;
+  transform: scale(1.05);
+}
+
+/* -----------------------------
+  Success Message
+----------------------------- */
+.qr-success-message {
+  color: #10b981;
+  font-weight: bold;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* -----------------------------
+  QR Scanner Instructions
+----------------------------- */
+.qr-instructions {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* -----------------------------
+  Animations
+----------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+
+/* -----------------------------
+  Loading / Error
+----------------------------- */
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 50px;
+  color: #ef4444;
+}

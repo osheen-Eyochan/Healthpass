@@ -1,5 +1,7 @@
+// src/receptionist/QrScanner.jsx
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import "./QrModal.css";
 
 const QrScanner = forwardRef(({ onScan }, ref) => {
   const qrCodeRegionId = "qr-scanner-region";
@@ -25,15 +27,14 @@ const QrScanner = forwardRef(({ onScan }, ref) => {
     const scanner = new Html5Qrcode(qrCodeRegionId);
     html5QrCodeRef.current = scanner;
 
-    // Start scanning
     scanner
       .start(
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
-          if (!isScanningRef.current) return; // avoid double stop
+          if (!isScanningRef.current) return;
           try {
-            isScanningRef.current = false; // mark as stopped
+            isScanningRef.current = false;
             await scanner.stop();
           } catch (err) {
             console.warn("Error stopping scanner after scan:", err);
@@ -41,7 +42,7 @@ const QrScanner = forwardRef(({ onScan }, ref) => {
           onScan?.(decodedText);
         },
         (errorMessage) => {
-          // Optional: scan errors
+          // optional scan errors
         }
       )
       .then(() => {
@@ -50,11 +51,10 @@ const QrScanner = forwardRef(({ onScan }, ref) => {
       .catch((err) => console.error("Unable to start scanner:", err));
 
     return () => {
-      // Cleanup safely
       if (html5QrCodeRef.current && isScanningRef.current) {
         html5QrCodeRef.current
           .stop()
-          .catch(() => {}) // ignore errors
+          .catch(() => {})
           .finally(() => {
             isScanningRef.current = false;
           });
@@ -63,9 +63,9 @@ const QrScanner = forwardRef(({ onScan }, ref) => {
   }, [onScan]);
 
   return (
-    <div>
-      <div id={qrCodeRegionId} style={{ width: "100%", height: "250px" }} />
-      <p style={{ marginTop: "10px", textAlign: "center" }}>
+    <div className="qr-scanner-inner">
+      <div id={qrCodeRegionId} className="qr-scanner-box" />
+      <p className="qr-instructions">
         Point your camera at the patient QR code
       </p>
     </div>

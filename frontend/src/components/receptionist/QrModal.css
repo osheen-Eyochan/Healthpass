@@ -1,0 +1,145 @@
+/* -----------------------------
+  QR Modal Overlay
+----------------------------- */
+.qr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+/* -----------------------------
+  QR Modal Content Box
+----------------------------- */
+.qr-modal-content {
+  background-color: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 800px;
+  display: flex;
+  gap: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+  position: relative;
+}
+
+/* -----------------------------
+  Left: QR Scanner
+----------------------------- */
+.qr-scanner-container {
+  flex: 1;
+  min-width: 300px;
+  min-height: 400px;
+  border-right: 1px solid #ddd;
+  padding-right: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-scanner-container h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+/* Instructions below scanner */
+.qr-instructions {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* -----------------------------
+  Right: Appointment Details
+----------------------------- */
+.qr-appointment-details {
+  flex: 1;
+  min-width: 300px;
+}
+
+.qr-appointment-details h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+.qr-appointment-details p {
+  margin: 6px 0;
+}
+
+/* -----------------------------
+  Buttons
+----------------------------- */
+.qr-modal-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.qr-confirm-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.qr-confirm-btn:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+.qr-close-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.qr-close-btn:hover {
+  background-color: #b91c1c;
+  transform: scale(1.05);
+}
+
+/* -----------------------------
+  Success Message
+----------------------------- */
+.qr-success-message {
+  color: #10b981;
+  font-weight: bold;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* -----------------------------
+  Animations
+----------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.qr-scanner-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scanner-box {
+  width: 100%;
+  height: 250px; /* fixed height or adjust for modal */
+}
+

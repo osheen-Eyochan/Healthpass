@@ -11,6 +11,13 @@ from django.http import JsonResponse
 from receptionist.models import Appointment
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def all_appointments(request):
+    appointments = Appointment.objects.all()
+    serializer = AppointmentSerializer(appointments, many=True)
+    return Response(serializer.data)
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -50,6 +57,7 @@ def receptionist_login(request):
 # Dashboard Stats API
 # -----------------------------
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def dashboard_stats(request):
     total_appointments = Appointment.objects.count()
     checked_in = Appointment.objects.filter(status='checked_in').count()
@@ -75,7 +83,32 @@ def get_appointment(request, appointment_id):
         import traceback
         print(traceback.format_exc())
         return Response({"success": False, "error": str(e)}, status=500)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def scan_appointment(request, qr_value):
+    """
+    Return appointment details by QR (appointment ID)
+    """
+    try:
+        appointment = Appointment.objects.get(id=qr_value)
+        patient = appointment.patient
+        doctor = appointment.doctor
 
+        data = {
+            "appointment_id": appointment.id,
+            "patient_name": patient.name if patient else None,
+            "age": patient.age if patient else None,
+            "gender": patient.gender if patient else None,
+            "time": appointment.time.strftime("%H:%M") if appointment.time else None,
+            "date": appointment.date.strftime("%Y-%m-%d") if appointment.date else None,
+            "status": appointment.status,
+            "checked_in": appointment.checked_in,
+            "doctor_name": doctor.full_name if doctor else None,
+            "specialization": getattr(doctor, "specialization", None)
+        }
+        return Response(data)
+    except Appointment.DoesNotExist:
+        return Response({"error": "Appointment not found"}, status=404)
 # -----------------------------
 # Check-in Patient
 # -----------------------------
