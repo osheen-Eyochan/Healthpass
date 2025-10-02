@@ -12,7 +12,9 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
 
   if (!isOpen) return null;
 
+  // -----------------------------
   // Handle QR scan
+  // -----------------------------
   const handleScan = async (appointmentId) => {
     if (!appointmentId) {
       alert("Invalid QR code.");
@@ -25,6 +27,8 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
         `http://127.0.0.1:8000/api/receptionist/scan/${appointmentId}/`
       );
 
+      console.log("Scanned appointment:", res.data);
+
       setAppointment(res.data);
 
       // Stop scanner safely
@@ -33,7 +37,6 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
       } catch (err) {
         console.warn("Failed to stop scanner:", err);
       }
-
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.error || "Failed to fetch appointment.");
@@ -43,14 +46,28 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
     }
   };
 
+  // -----------------------------
   // Confirm & Check-In
+  // -----------------------------
   const handleConfirm = async () => {
-    if (!appointment) return;
-    setCheckingIn(true);
+    if (!appointment) {
+      alert("No appointment selected");
+      return;
+    }
 
+    // Use either `id` or `appointment_id` from serializer
+    const appointmentId = appointment.id || appointment.appointment_id;
+    if (!appointmentId) {
+      alert("Invalid appointment ID");
+      return;
+    }
+
+    console.log("Attempting check-in for appointment ID:", appointmentId);
+
+    setCheckingIn(true);
     try {
       const res = await axios.post(
-        `http://127.0.0.1:8000/api/receptionist/appointment/${appointment.appointment_id}/checkin/`
+        `http://127.0.0.1:8000/api/receptionist/appointment/${appointmentId}/checkin/`
       );
 
       if (res.data.success) {
@@ -62,13 +79,22 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
       }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || "Failed to check in.");
+
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Failed to check in.";
+
+      alert(errorMsg);
     } finally {
       setCheckingIn(false);
     }
   };
 
+
+  // -----------------------------
   // Close modal
+  // -----------------------------
   const handleClose = () => {
     try {
       scannerRef.current?.stopScanner?.();
@@ -77,6 +103,9 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
     onClose();
   };
 
+  // -----------------------------
+  // Render modal
+  // -----------------------------
   return (
     <div className="qr-modal-overlay">
       <div className="qr-modal-content">
@@ -100,7 +129,7 @@ const QrModal = ({ isOpen, onClose, onCheckInSuccess }) => {
           {appointment ? (
             <>
               <h3>Appointment Details</h3>
-              <p><b>ID:</b> {appointment.appointment_id}</p>
+              <p><b>ID:</b> {appointment.id}</p>
               <p><b>Patient:</b> {appointment.patient_name || "N/A"}</p>
               <p><b>Age:</b> {appointment.age || "N/A"}</p>
               <p><b>Gender:</b> {appointment.gender || "N/A"}</p>

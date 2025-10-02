@@ -8,9 +8,10 @@ from .models import Receptionist, Appointment
 from .serializers import AppointmentSerializer
 import uuid
 from django.http import JsonResponse
-from receptionist.models import Appointment
 
-
+# -----------------------------
+# All Appointments
+# -----------------------------
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def all_appointments(request):
@@ -18,6 +19,10 @@ def all_appointments(request):
     serializer = AppointmentSerializer(appointments, many=True)
     return Response(serializer.data)
 
+
+# -----------------------------
+# Receptionist Login
+# -----------------------------
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -53,6 +58,8 @@ def receptionist_login(request):
         import traceback
         print(traceback.format_exc())
         return Response({"success": False, "error": str(e)}, status=500)
+
+
 # -----------------------------
 # Dashboard Stats API
 # -----------------------------
@@ -70,6 +77,7 @@ def dashboard_stats(request):
     }
     return Response(data)
 
+
 # -----------------------------
 # Appointment Details (by ID)
 # -----------------------------
@@ -83,30 +91,22 @@ def get_appointment(request, appointment_id):
         import traceback
         print(traceback.format_exc())
         return Response({"success": False, "error": str(e)}, status=500)
+
+
+# -----------------------------
+# Scan Appointment (QR)
+# -----------------------------
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def scan_appointment(request, qr_value):
     """
     Return appointment details by QR (appointment ID)
+    Uses AppointmentSerializer so frontend gets 'id' consistently
     """
     try:
-        appointment = Appointment.objects.get(id=qr_value)
-        patient = appointment.patient
-        doctor = appointment.doctor
-
-        data = {
-            "appointment_id": appointment.id,
-            "patient_name": patient.name if patient else None,
-            "age": patient.age if patient else None,
-            "gender": patient.gender if patient else None,
-            "time": appointment.time.strftime("%H:%M") if appointment.time else None,
-            "date": appointment.date.strftime("%Y-%m-%d") if appointment.date else None,
-            "status": appointment.status,
-            "checked_in": appointment.checked_in,
-            "doctor_name": doctor.full_name if doctor else None,
-            "specialization": getattr(doctor, "specialization", None)
-        }
-        return Response(data)
+        appointment = get_object_or_404(Appointment, id=qr_value)
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data, status=200)
     except Appointment.DoesNotExist:
         return Response({"error": "Appointment not found"}, status=404)
 # -----------------------------
@@ -114,7 +114,8 @@ def scan_appointment(request, qr_value):
 # -----------------------------
 @csrf_exempt
 @api_view(['POST'])
-def checkin_patient(request, appointment_id=None):
+@permission_classes([AllowAny])
+def checkin_patient(request, appointment_id):
     """
     POST to check-in patient.
     Accepts appointment_id in URL or in POST body (QR code scan)
