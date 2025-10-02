@@ -4,6 +4,7 @@ import PharmacyLogin from "./pages/PharmacyLogin";
 import PharmacyQrScanner from "./components/PharmacyQrScanner";
 import MedicineTable from "./components/MedicineTable";
 import RequireAuth from "./components/RequireAuth";
+import ReceiptPage from "./components/ReceiptPage";
 
 function App() {
   return (
@@ -12,16 +13,17 @@ function App() {
         {/* Home route → Login page */}
         <Route path="/" element={<PharmacyLogin />} />
 
-        {/* QR Scanner route (public, for testing) */}
-        <Route path="/pharmacy-qr-scanner" element={<PharmacyQrScanner />} />
-
         {/* Medicines route */}
         <Route path="/medicines" element={<MedicineTable />} />
 
-        {/* Explicit login route (same as home) */}
-        <Route path="/pharmacy-login" element={<PharmacyLogin />} />
+        {/* Receipt page */}
+        <Route path="/receipt" element={<ReceiptPage />} /> 
 
-        {/* Protected route */}
+        {/* QR Scanner route (public, for testing) */}
+        <Route path="/pharmacy-qr-scanner" element={<PharmacyQrScanner />} />
+
+       <Route path="*" element={<MedicineTable />} />
+        {/* Protected QR Scanner route */}
         <Route
           path="/pharmacy-qr"
           element={

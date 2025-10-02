@@ -14,6 +14,7 @@ const PrescriptionPage = () => {
       .then((res) => {
         setPrescription(res.data);
         calculateTotal(res.data.medicines);
+        
       })
       .catch((err) => console.error(err));
   }, [tokenId]);

@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Patient, Medicine, Prescription, PrescriptionItem, Token
-from .models import Doctor
+from .models import Patient, Medicine, Prescription, PrescriptionItem, Token, Doctor
+
 # ===================== Patient Admin =====================
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
@@ -11,17 +11,11 @@ class PatientAdmin(admin.ModelAdmin):
 # ===================== Medicine Admin =====================
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
-     # Fields to display in the list view
-    list_display = ('id', 'name', 'mg', 'days', 'rate', 'frequency', 'created_at', 'updated_at')
-    
-    # Fields that can be edited directly from the list view
-    list_editable = ('mg', 'days', 'rate', 'frequency')
-    
-    # Add search functionality
-    search_fields = ('name', 'mg', 'frequency')
-    
-    # Optional: add filtering by creation date
+    list_display = ('id', 'name', 'mg', 'rate', 'quantity', 'created_at', 'updated_at')
+    list_editable = ('mg', 'rate', 'quantity')
+    search_fields = ('name', 'mg', 'quantity')
     list_filter = ('created_at', 'updated_at')
+
 
 # ===================== Prescription Item Inline =====================
 class PrescriptionItemInline(admin.TabularInline):
@@ -53,10 +47,21 @@ class PrescriptionAdmin(admin.ModelAdmin):
 # ===================== Token Admin =====================
 @admin.register(Token)
 class TokenAdmin(admin.ModelAdmin):
-    list_display = ('id', 'token_number', 'patient', 'is_completed', 'qr_code')
+    list_display = ('id', 'token_number', 'patient', 'prescription', 'is_completed', 'qr_code_display')
     search_fields = ('token_number', 'patient__name')
     list_filter = ('is_completed',)
 
+    readonly_fields = ('qr_code_display',)
+
+    def qr_code_display(self, obj):
+        if obj.qr_code:
+            return f'<img src="{obj.qr_code.url}" width="100" />'
+        return "No QR Code"
+    qr_code_display.allow_tags = True
+    qr_code_display.short_description = "QR Code"
+
+
+# ===================== Doctor Admin =====================
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
     list_display = ("name", "specialization", "phone", "email", "available_from", "available_to")

@@ -5,7 +5,7 @@ from .models import Medicine, Prescription, PrescriptionItem, Patient, Token
 class MedicineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicine
-        fields = ['id', 'name', 'mg', 'days', 'rate', 'frequency', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'mg', 'days', 'rate', 'quantity', 'created_at', 'updated_at']
 
 # ---------------- Prescription Item Serializer ----------------
 class PrescriptionItemSerializer(serializers.ModelSerializer):

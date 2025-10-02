@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import QrScanner from "react-qr-scanner";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./pharmacyQrScanner.css";
 
 const PharmacyQrScanner = () => {
@@ -12,6 +13,14 @@ const PharmacyQrScanner = () => {
   const [selected, setSelected] = useState([]);
   const [total, setTotal] = useState(0);
 
+  const [patientDetails, setPatientDetails] = useState({
+    tokenId: "",
+    name: "",
+    doctor: "",
+  });
+
+  const navigate = useNavigate();
+
   const handleScan = (data) => {
     if (data) {
       setQrData(data.text);
@@ -20,6 +29,16 @@ const PharmacyQrScanner = () => {
       setShowMedicines(false);
       setSelected([]);
       setTotal(0);
+
+      const tokenMatch = data.text.match(/Token ID:\s*(\d+)/);
+      const nameMatch = data.text.match(/Name:\s*(.*)/);
+      const doctorMatch = data.text.match(/Doctor:\s*(.*)/);
+
+      setPatientDetails({
+        tokenId: tokenMatch ? tokenMatch[1] : "",
+        name: nameMatch ? nameMatch[1].trim() : "",
+        doctor: doctorMatch ? doctorMatch[1].trim() : "",
+      });
     }
   };
 
@@ -43,24 +62,59 @@ const PharmacyQrScanner = () => {
     if (exists) {
       setSelected(selected.filter((m) => m.id !== medicine.id));
     } else {
-      setSelected([...selected, { ...medicine, days: 1 }]);
+      setSelected([...selected, { ...medicine, days: 1, frequency: "1" }]);
     }
   };
 
   const updateDays = (id, days) => {
     const value = Math.max(parseInt(days) || 1, 1);
-    setSelected(selected.map((m) => (m.id === id ? { ...m, days: value } : m)));
+    const updated = selected.map((m) => (m.id === id ? { ...m, days: value } : m));
+    setSelected(updated);
+  };
+
+  const updateFrequency = (id, freqText) => {
+    const updated = selected.map((m) =>
+      m.id === id ? { ...m, frequency: freqText } : m
+    );
+    setSelected(updated);
   };
 
   const calculateTotal = () => {
+    if (selected.length === 0) {
+      alert("Please select at least one medicine!");
+      return;
+    }
     let sum = 0;
-    selected.forEach((m) => (sum += m.rate * m.days));
+    selected.forEach((m) => {
+      let freq = 1;
+      if (m.frequency) {
+        const match = m.frequency.match(/\d+/);
+        freq = match ? parseInt(match[0]) : 1;
+      }
+      sum += m.rate * m.days * freq;
+    });
     setTotal(sum);
   };
 
   const cancelSelection = () => {
     setSelected([]);
     setTotal(0);
+  };
+
+  const handleReceipt = () => {
+    if (selected.length === 0) {
+      alert("No medicines selected!");
+      return;
+    }
+    navigate("/receipt", {
+      state: {
+        tokenId: patientDetails.tokenId,
+        name: patientDetails.name,
+        doctor: patientDetails.doctor,
+        medicines: selected,
+        total: total,
+      },
+    });
   };
 
   let prescriptionLines = [];
@@ -157,15 +211,7 @@ const PharmacyQrScanner = () => {
                             <input
                               type="text"
                               value={sel.frequency || ""}
-                              onChange={(e) =>
-                                setSelected(
-                                  selected.map((m) =>
-                                    m.id === med.id
-                                      ? { ...m, frequency: e.target.value }
-                                      : m
-                                  )
-                                )
-                              }
+                              onChange={(e) => updateFrequency(med.id, e.target.value)}
                               placeholder="e.g., 2x/day"
                             />
                           ) : (
@@ -173,10 +219,7 @@ const PharmacyQrScanner = () => {
                           )}
                         </td>
                         <td>
-                          <button
-                            onClick={() => toggleSelect(med)}
-                            className="btn small"
-                          >
+                          <button onClick={() => toggleSelect(med)} className="btn small">
                             {sel ? "Remove" : "Add"}
                           </button>
                         </td>
@@ -195,7 +238,14 @@ const PharmacyQrScanner = () => {
                 </button>
               </div>
 
-              <h3 className="total-display">Total: ₹{total.toFixed(2)}</h3>
+              {total > 0 && selected.length > 0 && (
+                <div className="total-section">
+                  <h3 className="total-display">Total: ₹{total.toFixed(2)}</h3>
+                  <button onClick={handleReceipt} className="btn success">
+                    Receipt
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
