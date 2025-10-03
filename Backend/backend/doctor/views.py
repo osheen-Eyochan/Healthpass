@@ -7,6 +7,7 @@ from django.utils.timezone import now
 import json
 from datetime import date
 
+
 from .models import Doctor, Consultation, Prescription, MedicineMaster
 from .serializers import ConsultationSerializer, PrescriptionSerializer
 from receptionist.models import Appointment, Patient
@@ -223,3 +224,25 @@ def add_prescription(request, consultation_id):
     return Response(
         {"success": True, "prescriptions": created_prescriptions}, status=201
     )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_prescription(request, consultation_id):
+    try:
+        consultation = Consultation.objects.get(id=consultation_id)
+        prescriptions = Prescription.objects.filter(consultation=consultation)
+        serializer = PrescriptionSerializer(prescriptions, many=True)
+
+        return Response({
+            "success": True,
+            "consultation": {
+                "id": consultation.id,
+                "patient_name": consultation.patient_name,
+                "patient_id": consultation.patient.id if consultation.patient else None,
+                "doctor_id": consultation.doctor.id,
+                "notes": consultation.notes
+            },
+            "prescriptions": serializer.data
+        })
+    except Consultation.DoesNotExist:
+        return Response({"success": False, "message": "Consultation not found"})

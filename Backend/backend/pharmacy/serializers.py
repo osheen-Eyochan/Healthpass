@@ -1,35 +1,45 @@
 from rest_framework import serializers
-from .models import Medicine, Prescription, PrescriptionItem, Patient, Token
+from .models import PharmacyUser, PharmacyMedicine
+from doctor.models import Prescription
 
-# ---------------- Medicine Serializer ----------------
-class MedicineSerializer(serializers.ModelSerializer):
+# --------------------------
+# Pharmacy User Serializer
+# --------------------------
+class PharmacyUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Medicine
-        fields = ['id', 'name', 'mg', 'days', 'rate', 'frequency', 'created_at', 'updated_at']
+        model = PharmacyUser
+        fields = ["id", "username", "full_name", "email"]
 
-# ---------------- Prescription Item Serializer ----------------
-class PrescriptionItemSerializer(serializers.ModelSerializer):
-    medicine_name = serializers.CharField(source='medicine.name', read_only=True)
-    rate = serializers.DecimalField(source='medicine.rate', max_digits=8, decimal_places=2, read_only=True)
 
+# --------------------------
+# Pharmacy Medicine Serializer
+# --------------------------
+class PharmacyMedicineSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PrescriptionItem
-        fields = ['id', 'medicine_name', 'mg_per_day', 'days', 'quantity', 'rate', 'total_price']
+        model = PharmacyMedicine
+        fields = ["id", "name", "price"]
 
-# ---------------- Prescription Serializer ----------------
-class PrescriptionSerializer(serializers.ModelSerializer):
-    items = PrescriptionItemSerializer(many=True, read_only=True)
-    patient_name = serializers.CharField(source='patient.name', read_only=True)
+
+# --------------------------
+# Prescription Serializer with Price
+# --------------------------
+class PrescriptionWithPriceSerializer(serializers.ModelSerializer):
+    medicine_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Prescription
-        fields = ['id', 'patient', 'patient_name', 'doctor', 'created_at', 'items']
+        fields = [
+            "id",
+            "custom_medicine",
+            "medicine_name",
+            "dosage",
+            "frequency",
+            "duration",
+            "price",
+            "symptom",
+        ]
 
-# ---------------- Token Serializer ----------------
-class TokenSerializer(serializers.ModelSerializer):
-    prescription = PrescriptionSerializer(read_only=True)
-    patient_name = serializers.CharField(source='patient.name', read_only=True)
-
-    class Meta:
-        model = Token
-        fields = ['id', 'token_number', 'patient', 'patient_name', 'prescription', 'is_completed', 'qr_code']
+    def get_medicine_name(self, obj):
+        if obj.medicine_id:
+            return obj.medicine.name
+        return obj.custom_medicine

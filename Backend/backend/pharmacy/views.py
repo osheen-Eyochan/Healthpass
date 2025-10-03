@@ -1,84 +1,84 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.generics import RetrieveAPIView
-from .models import Prescription, PrescriptionItem, Medicine, Token
-from .serializers import TokenSerializer
-from .serializers import MedicineSerializer
-from .models import Medicine
-
-# ===================== API Home =====================
-@api_view(["GET"])
-def api_home(request):
-    return Response({
-        "message": "Welcome to Pharmacy API",
-        "endpoints": {
-            "scan QR": "/api/pharmacy/scan-qr/",
-            "calculate total": "/api/pharmacy/calculate-total/",
-            "token detail": "/api/tokens/<token_number>/"
-        }
-    })
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
+from .models import PharmacyUser
+from rest_framework.permissions import IsAuthenticated
+from .models import PharmacyMedicine
+from doctor.models import Consultation, Prescription
+from .serializers import PrescriptionWithPriceSerializer,PharmacyMedicineSerializer
 
 
-# ===================== Scan QR =====================
+
+
+# --------------------------
+# Pharmacy Login
+# --------------------------
 @api_view(["POST"])
-def scan_qr(request):
-    qr_data = request.data.get("qr_data")
-    try:
-        prescription = Prescription.objects.get(id=qr_data)
-        items = PrescriptionItem.objects.filter(prescription=prescription)
+@permission_classes([AllowAny])  
+def pharmacy_login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
 
-        medicines = []
-        for item in items:
-            medicines.append({
-                "id": item.medicine.id,
-                "name": item.medicine.name,
-                "rate": float(item.medicine.rate),
-                "quantity": item.quantity
+    try:
+        user = PharmacyUser.objects.get(username=username)
+        if user.check_password(password):
+            return Response({
+                "success": True,
+                "user": {"username": user.username, "full_name": user.full_name},
+                "token": f"TOKEN-{user.id}"
             })
+        else:
+            return Response({"success": False, "message": "Invalid credentials"}, status=400)
+    except PharmacyUser.DoesNotExist:
+        return Response({"success": False, "message": "User not found"}, status=400)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pharmacy_medicine_list(request):
+    medicines = PharmacyMedicine.objects.all()
+    serializer = PharmacyMedicineSerializer(medicines, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_prescription_by_consultation(request, consultation_id):
+    """
+    Fetch consultation + prescription details for a given consultation_id
+    """
+    try:
+        # Get the consultation
+        consultation = Consultation.objects.get(id=consultation_id)
+
+        # Get all prescriptions linked to this consultation
+        prescriptions = Prescription.objects.filter(consultation_id=consultation_id)
+        if not prescriptions.exists():
+            return Response({
+                "success": False,
+                "message": "No prescriptions found"
+            }, status=404)
+
+        # Serialize prescriptions (includes price, dosage, frequency, etc.)
+        serializer = PrescriptionWithPriceSerializer(prescriptions, many=True)
+
+        # Build consultation data
+        consultation_data = {
+            "id": consultation.id,
+            "patient_name": consultation.patient_name,  # from table
+            "doctor_id": consultation.doctor_id,
+            "notes": consultation.notes,
+            "created_at": consultation.created_at,
+            "token": consultation.token,
+        }
+
         return Response({
             "success": True,
-            "patient": prescription.patient.name,
-            "doctor": prescription.doctor,
-            "prescription_id": prescription.id,
-            "medicines": medicines
+            "consultation": consultation_data,
+            "prescriptions": serializer.data,
         })
-    except Prescription.DoesNotExist:
-        return Response({"success": False, "message": "Invalid QR Code"}, status=400)
 
-
-# ===================== Calculate Total =====================
-@api_view(["POST"])
-def calculate_total(request):
-    medicines = request.data.get("medicines", [])  # list of {id, quantity}
-    total = 0
-    for med in medicines:
-        try:
-            medicine = Medicine.objects.get(id=med["id"])
-            qty = int(med.get("quantity", 1))
-            total += float(medicine.rate) * qty
-        except Medicine.DoesNotExist:
-            continue
-    return Response({"success": True, "total": total})
-
-
-# ===================== Token Detail View =====================
-class TokenDetailView(RetrieveAPIView):
-    queryset = Token.objects.all()
-    serializer_class = TokenSerializer
-    lookup_field = 'token_number'
-
-# Add new medicine API
-@api_view(["POST"])
-def get_medicines(request):
-    serializer = MedicineSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"success": True, "medicine": serializer.data})
-    return Response({"success": False, "errors": serializer.errors}, status=400)
-
-# ===================== Get All Medicines =====================
-@api_view(["GET"])
-def get_medicines(request):
-    medicines = Medicine.objects.all()
-    serializer = MedicineSerializer(medicines, many=True)
-    return Response(serializer.data)
+    except Consultation.DoesNotExist:
+        return Response({
+            "success": False,
+            "message": "Consultation not found"
+        }, status=404)

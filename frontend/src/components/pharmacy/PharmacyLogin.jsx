@@ -1,19 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./PharmacyLogin.css";
 
 const PharmacyLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Example check (replace with backend API call)
-    if (email === "pharmacy@example.com" && password === "password") {
-      navigate("/pharmacy/dashboard");
-    } else {
-      alert("Invalid credentials");
+    setLoading(true);
+
+    try {
+      // ✅ Use full backend URL
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/pharmacy/login/",
+        {
+          username: user,
+          password: password,
+        }
+      );
+
+      if (response.data.success) {
+        // Save token and user info
+        localStorage.setItem("pharmacyToken",response.data.token);
+        localStorage.setItem("pharmacyUser", JSON.stringify(response.data.user));
+
+        // Redirect to dashboard
+        navigate("/pharmacy/dashboard");
+      } else {
+        alert(response.data.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -23,12 +47,12 @@ const PharmacyLogin = () => {
         <h2>Pharmacy Login</h2>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Email</label>
+            <label>Username</label>
             <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Enter your username"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
               required
             />
           </div>
@@ -42,7 +66,9 @@ const PharmacyLogin = () => {
               required
             />
           </div>
-          <button type="submit">Login</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
       </div>
     </div>

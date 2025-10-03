@@ -1,70 +1,76 @@
-/* Background */
+/* PharmacyLogin.css */
+
 .pharmacy-login-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #dff5e1; /* Light pastel green */
+  min-height: 100vh;
+  background: #f5f6fa;
+  padding: 20px;
 }
 
-/* White Box */
 .pharmacy-login-card {
   background: #ffffff;
   padding: 40px 30px;
   border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  width: 350px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-/* Title */
 .pharmacy-login-card h2 {
-  margin-bottom: 25px;
-  color: #2e7d32; /* Green shade */
-  font-size: 1.8rem;
+  margin-bottom: 30px;
+  color: #2f3640;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-/* Inputs */
 .input-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
 .input-group label {
-  margin-bottom: 5px;
+  display: block;
+  margin-bottom: 6px;
   font-weight: 500;
-  color: #388e3c;
+  color: #2f3640;
 }
 
 .input-group input {
-  padding: 10px;
-  border: 1px solid #b2dfdb;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #dcdde1;
   border-radius: 8px;
+  font-size: 16px;
   outline: none;
   transition: 0.3s;
 }
 
 .input-group input:focus {
-  border-color: #2e7d32;
-  box-shadow: 0 0 5px rgba(46, 125, 50, 0.3);
+  border-color: #4cd137;
+  box-shadow: 0 0 5px rgba(76, 209, 55, 0.5);
 }
 
-/* Button */
 button {
   width: 100%;
-  padding: 12px;
-  background: #2e7d32;
+  padding: 12px 0;
+  background-color: #4cd137;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
 }
 
 button:hover {
-  background: #1b5e20;
+  background-color: #44bd32;
+}
+
+button:disabled {
+  background-color: #7bed9f;
+  cursor: not-allowed;
 }

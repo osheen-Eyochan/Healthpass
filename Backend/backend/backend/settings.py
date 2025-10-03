@@ -102,3 +102,5 @@ CORS_ALLOW_ALL_ORIGINS = True  # allow all for dev
 # ✅ Razorpay keys
 RAZORPAY_KEY_ID = "rzp_test_RAG8gAodjvayL3"
 RAZORPAY_KEY_SECRET = "2k2euISr8376uuCrBbixXj9W"
+
+

@@ -1,11 +1,10 @@
 from django.urls import path
 from . import views
-from .views import TokenDetailView, get_medicines   # ✅ import function correctly
+from .views import pharmacy_login, pharmacy_medicine_list
 
 urlpatterns = [
-    path('', views.api_home, name='api_home'),
-    path('scan-qr/', views.scan_qr, name='scan_qr'),
-    path('calculate-total/', views.calculate_total, name='calculate_total'),
-    path('tokens/<str:token_number>/', TokenDetailView.as_view(), name='token-detail'),
-    path('medicines/', get_medicines, name='get_medicines'),
+    path("login/", pharmacy_login, name="pharmacy-login"),
+    path("medicines/", views.pharmacy_medicine_list, name="pharmacy-medicine-list"),
+
+    path("prescription/<int:consultation_id>/", views.get_prescription_by_consultation, name="get_prescription"),
 ]

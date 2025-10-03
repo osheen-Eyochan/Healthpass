@@ -62,6 +62,7 @@ class MedicineMaster(models.Model):
     default_dosage = models.CharField(max_length=100, blank=True, null=True)
     default_frequency = models.CharField(max_length=100, blank=True, null=True)
     default_duration = models.PositiveIntegerField(blank=True, null=True)  # in days
+    default_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # ← Add this
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -74,7 +75,7 @@ class MedicineMaster(models.Model):
 # -------------------------
 class Prescription(models.Model):
     consultation = models.ForeignKey(
-        Consultation, 
+        "Consultation", 
         on_delete=models.CASCADE, 
         related_name="prescriptions"
     )
@@ -85,7 +86,7 @@ class Prescription(models.Model):
         help_text="Symptom or condition this medicine is for"
     )
     medicine = models.ForeignKey(
-        MedicineMaster, 
+        "MedicineMaster", 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -110,6 +111,12 @@ class Prescription(models.Model):
     duration = models.PositiveIntegerField(
         default=1,
         help_text="Number of days to take the medicine"
+    )
+    price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0.00,
+        help_text="Price of the medicine per unit"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

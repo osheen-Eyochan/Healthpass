@@ -16,25 +16,22 @@ class MedicineMasterSerializer(serializers.ModelSerializer):
 # Prescription Serializer
 # -------------------------
 class PrescriptionSerializer(serializers.ModelSerializer):
-    resolved_medicine_name = serializers.SerializerMethodField()
+    # If medicine is selected from master, get name & price
+    medicine_name = serializers.CharField(source='medicine.name', read_only=True)
+    price = serializers.DecimalField(source='medicine.default_price', max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = Prescription
         fields = [
-            "id",
-            "symptom",
-            "medicine",            # ForeignKey to MedicineMaster
-            "custom_medicine",
-            "resolved_medicine_name",
-            "dosage",
-            "frequency",
-            "duration",
+            'id',
+            'symptom',
+            'medicine_name',
+            'custom_medicine',
+            'dosage',
+            'frequency',
+            'duration',
+            'price'
         ]
-
-    def get_resolved_medicine_name(self, obj):
-        return obj.medicine.name if obj.medicine else obj.custom_medicine
-
-
 # -------------------------
 # Patient Serializer
 # -------------------------

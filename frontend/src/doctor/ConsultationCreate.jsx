@@ -134,8 +134,12 @@ function ConsultationCreate() {
       }
 
       // Step 3: Generate QR code
-      const qrPayload = `consultation_id:${consultationId}|patient_id:${patientInfo.id}|token:${patientInfo.token || "-"}`;
-      setQrData(qrPayload);
+      function PrescriptionQRCode({ consultationId }) {
+        const qrData = JSON.stringify({ consultation_id: consultationId });
+        return <QRCodeCanvas value={qrData} size={180} />;
+      }
+      //const qrPayload = `consultation_id:${consultationId}|patient_id:${patientInfo.id}|token:${patientInfo.token || "-"}`;
+      //setQrData(qrPayload);
 
       alert("Consultation saved successfully!");
     } catch (err) {

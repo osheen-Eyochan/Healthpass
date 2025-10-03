@@ -1,0 +1,107 @@
+/* =========================
+   Prescription Page Styles
+========================= */
+
+/* Container */
+.prescription-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px 30px;
+  background-color: #fdfdfd;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Heading */
+.prescription-container h2 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* Patient Info Box */
+.patient-info-box {
+  background-color: #ecf0f1;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  border-left: 5px solid #2980b9; /* blue accent */
+}
+
+.patient-info-box p {
+  margin: 6px 0;
+  font-size: 16px;
+  color: #34495e;
+}
+
+/* Prescription Table */
+.prescription-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  font-size: 15px;
+}
+
+.prescription-table th,
+.prescription-table td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.prescription-table th {
+  background-color: #2980b9;
+  color: #fff;
+  font-weight: 600;
+}
+
+.prescription-table tr:nth-child(even) {
+  background-color: #f4f6f8;
+}
+
+.prescription-table tr:hover {
+  background-color: #d6eaf8;
+}
+
+/* Highlight Total Amount */
+.total-box {
+  text-align: right;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #e74c3c;   /* strong red */
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+  border: 1px solid #c0392b;
+  margin-bottom: 30px;
+}
+
+/* Optional Save Button */
+.save-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #2980b9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: #1c5980;
+}
+
+/* Error Message */
+.error {
+  text-align: center;
+  color: #e74c3c;
+  font-weight: 600;
+  margin-top: 20px;
+}
