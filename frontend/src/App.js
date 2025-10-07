@@ -22,34 +22,35 @@ import ConsultationCreate from "./doctor/ConsultationCreate";
 import PharmacyLogin from "./components/pharmacy/PharmacyLogin";
 import PharmacyDashboard from "./components/pharmacy/PharmacyDashboard";
 import PharmacyQrScanner from "./components/pharmacy/PharmacyQrScanner";
-// Corrected import: match the file name
-import PharmacyPrescriptionPage from './components/pharmacy/PharmacyPrescriptionPage';
+import PharmacyPrescriptionPage from "./components/pharmacy/PharmacyPrescriptionPage";
 
-
+// ================= Admin Components =================
+import AdminLogin from "./components/admin/AdminLogin";
+import AdminDashboard from "./components/admin/AdminDashboard";
 
 // ================= General Components =================
 import HomePage from "./components/homepage/HomePage";
 
-// ================= Protected Route Wrapper =================
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token"); // Adjust token key if needed
-  return token ? children : <Navigate to="/pharmacy/login" />;
+// ================= Private Route Wrappers =================
+const PrivateRoute = ({ children, tokenKey }) => {
+  const token = localStorage.getItem(tokenKey);
+  return token ? children : <Navigate to="/" />;
 };
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ========== Home Page ========== */}
+        {/* ================= Home Page ================= */}
         <Route path="/" element={<HomePage />} />
 
-        {/* ========== Patient Routes ========== */}
+        {/* ================= Patient Routes ================= */}
         <Route path="/login" element={<PatientLogin />} />
         <Route path="/register" element={<PatientRegister />} />
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="token">
               <PatientDashboard />
             </PrivateRoute>
           }
@@ -57,7 +58,7 @@ function App() {
         <Route
           path="/appointments"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="token">
               <AppointmentsList />
             </PrivateRoute>
           }
@@ -65,31 +66,56 @@ function App() {
         <Route
           path="/appointment/:id"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="token">
               <AppointmentDetails />
             </PrivateRoute>
           }
         />
 
-        {/* ========== Receptionist Routes ========== */}
+        {/* ================= Receptionist Routes ================= */}
         <Route path="/receptionist/login" element={<ReceptionistLogin />} />
-        <Route path="/receptionist/dashboard" element={<ReceptionistDashboard />} />
-
-        {/* ========== Doctor Routes ========== */}
         <Route
-          path="/doctor/login"
-          element={<DoctorLogin onLoginSuccess={(doctor) => console.log("Logged in:", doctor)} />}
+          path="/receptionist/dashboard"
+          element={
+            <PrivateRoute tokenKey="receptionistToken">
+              <ReceptionistDashboard />
+            </PrivateRoute>
+          }
         />
-        <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-        <Route path="/doctor/consultations" element={<ConsultationList />} />
-        <Route path="/doctor/consultation" element={<ConsultationCreate />} />
 
-        {/* ========== Pharmacy Routes ========== */}
+        {/* ================= Doctor Routes ================= */}
+        <Route path="/doctor/login" element={<DoctorLogin />} />
+        <Route
+          path="/doctor/dashboard"
+          element={
+            <PrivateRoute tokenKey="doctorToken">
+              <DoctorDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor/consultations"
+          element={
+            <PrivateRoute tokenKey="doctorToken">
+              <ConsultationList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor/consultation"
+          element={
+            <PrivateRoute tokenKey="doctorToken">
+              <ConsultationCreate />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ================= Pharmacy Routes ================= */}
         <Route path="/pharmacy/login" element={<PharmacyLogin />} />
         <Route
           path="/pharmacy/dashboard"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="pharmacyToken">
               <PharmacyDashboard />
             </PrivateRoute>
           }
@@ -97,7 +123,7 @@ function App() {
         <Route
           path="/pharmacy/qr-scan"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="pharmacyToken">
               <PharmacyQrScanner />
             </PrivateRoute>
           }
@@ -105,13 +131,25 @@ function App() {
         <Route
           path="/pharmacy/prescription/:consultationId"
           element={
-            <PrivateRoute>
+            <PrivateRoute tokenKey="pharmacyToken">
               <PharmacyPrescriptionPage />
             </PrivateRoute>
           }
         />
 
-        {/* ========== Redirect unknown routes ========== */}
+        {/* ================= Admin Routes ================= */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <PrivateRoute tokenKey="adminToken">
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
+
+        {/* ================= Redirect unknown routes ================= */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

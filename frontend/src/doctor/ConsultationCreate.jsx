@@ -85,68 +85,69 @@ function ConsultationCreate() {
 
   // Save consultation
   const handleSave = async () => {
-    if (!patientInfo?.id || patientInfo.id === "-") {
-      alert("Cannot save consultation. Patient info missing.");
-      return;
-    }
+  if (!patientInfo?.id || patientInfo.id === "-") {
+    alert("Cannot save consultation. Patient info missing.");
+    return;
+  }
 
-    const doctorInfo = JSON.parse(localStorage.getItem("doctorInfo"));
-    if (!doctorInfo?.id) {
-      alert("Doctor info missing. Please log in again.");
-      navigate("/doctor/login");
-      return;
-    }
+  const doctorInfo = JSON.parse(localStorage.getItem("doctorInfo"));
+  if (!doctorInfo?.id) {
+    alert("Doctor info missing. Please log in again.");
+    navigate("/doctor/login");
+    return;
+  }
 
-    if (followUp && !followUpDate) {
-      alert("Please select a follow-up date.");
-      return;
-    }
+  if (followUp && !followUpDate) {
+    alert("Please select a follow-up date.");
+    return;
+  }
 
-    const consultationPayload = {
-      patient_id: patientInfo.id,
-      doctor: doctorInfo.id,
-      patient_name: patientInfo.name,
-      token: patientInfo.token || null,
-      notes,
-      follow_up: followUp,
-      follow_up_date: followUp ? followUpDate : null,
-    };
+  const consultationPayload = {
+    patient_id: patientInfo.id,
+    doctor: doctorInfo.id,
+    patient_name: patientInfo.name,
+    token:  patientInfo.token || "",
+    notes,
+    follow_up: followUp,
+    follow_up_date: followUp ? followUpDate : null,
+  };
 
-    try {
-      // Step 1: Create consultation
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/doctor/consultations/",
-        consultationPayload
-      );
+  try {
+    // 1️⃣ Create consultation
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/doctor/consultations/",
+      consultationPayload
+    );
+    const consultationId = res.data.id;
 
-      const consultationId = res.data.id;
+    // 2️⃣ Post prescriptions (skip empty)
+    const validPrescriptions = prescriptions.filter(
+      (p) => p.medicine && p.symptom
+    );
 
-      // Step 2: Post prescriptions (skip empty)
-      for (const pres of prescriptions) {
-        if (!pres.medicine || !pres.symptom) continue;
-        await axios.post(
+    await Promise.all(
+      validPrescriptions.map((pres) =>
+        axios.post(
           `http://127.0.0.1:8000/api/doctor/consultations/${consultationId}/prescriptions/`,
           {
             ...pres,
-            duration: pres.duration || 1, // default duration 1
+            consultation: consultationId,
+            duration: pres.duration || 1, // default 1 if empty
           }
-        );
-      }
+        )
+      )
+    );
 
-      // Step 3: Generate QR code
-      function PrescriptionQRCode({ consultationId }) {
-        const qrData = JSON.stringify({ consultation_id: consultationId });
-        return <QRCodeCanvas value={qrData} size={180} />;
-      }
-      //const qrPayload = `consultation_id:${consultationId}|patient_id:${patientInfo.id}|token:${patientInfo.token || "-"}`;
-      //setQrData(qrPayload);
+    // 3️⃣ Generate QR code for pharmacy
+    const qrPayload = JSON.stringify({ consultation_id: consultationId });
+    setQrData(qrPayload); // triggers QR code rendering in JSX
 
-      alert("Consultation saved successfully!");
-    } catch (err) {
-      console.error("Error saving consultation:", err.response?.data || err.message || err);
-      alert("Error saving consultation. Check console for details.");
-    }
-  };
+    alert("Consultation saved successfully!");
+  } catch (err) {
+    console.error("Error saving consultation:", err.response?.data || err.message);
+    alert("Error saving consultation. Check console for details.");
+  }
+};
 
   if (loading) return <p>Loading patient information...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -297,11 +298,12 @@ function ConsultationCreate() {
 
           {/* QR Code */}
           {qrData && (
-            <section className="qr-code-section">
-              <h4>QR Code for Pharmacy</h4>
-              <QRCodeCanvas value={qrData} size={200} />
-            </section>
-          )}
+           <section className="qr-code-section">
+            <h4>QR Code for Pharmacy</h4>
+            <QRCodeCanvas value={qrData} size={200} />
+         </section>
+         )}
+
         </>
       )}
     </div>

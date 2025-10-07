@@ -1,125 +1,286 @@
-/* General Reset */
+/* ---------- Global Reset ---------- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  scroll-behavior: smooth;
 }
 
-/* Navbar */
+body {
+  background: #f8fdfd;
+  color: #003c3c;
+  overflow-x: hidden;
+}
+
+/* ---------- Navbar ---------- */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #e0f7fa; /* very light blue */
-  padding: 15px 50px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 15px 60px;
   position: sticky;
   top: 0;
   z-index: 1000;
-  color: #169aab; /* text blends in background */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.4s ease-in-out;
 }
 
-.navbar .logo {
-  font-size: 1.8rem;
-  font-weight: bold;
+.navbar.scrolled {
+  background: rgba(224, 247, 250, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.logo {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #009688;
   cursor: pointer;
-  color: #00796b; /* visible logo */
 }
 
 .navbar ul {
   list-style: none;
   display: flex;
-  gap: 30px;
+  gap: 35px;
 }
 
 .navbar ul li {
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #00796b; /* hidden initially */
-  transition: color 0.3s, text-shadow 0.3s;
+  color: #00796b;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.navbar ul li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0%;
+  height: 2px;
+  background: #00796b;
+  transition: width 0.3s ease;
 }
 
 .navbar ul li:hover {
-  color: #00796b; /* dark teal on hover */
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  color: #004d40;
+}
+.navbar ul li:hover::after {
+  width: 100%;
 }
 
-/* Hero */
+/* ---------- Hero Section ---------- */
 .hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #a8edea, #fed6e3); /* soft blue-green */
-  color: #00796b;
+  height: 100vh;
+  color: #004d40;
   text-align: center;
-  height: 70vh;
-  padding: 0 20px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  animation: fadeInBg 3s ease-in-out forwards;
 }
 
+/* Animated gradient overlay */
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(270deg, #a8edea, #fed6e3, #ffe0b2, #c5cae9);
+  background-size: 800% 800%;
+  animation: gradientShift 25s ease infinite;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* Gradient shift keyframes */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Floating particles */
+.hero .particle {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  z-index: 1;
+  animation: floatParticle 12s ease-in-out infinite alternate;
+}
+
+/* Additional particles with staggered positions & durations */
+.hero .particle:nth-child(1) {
+  top: 20%; left: 10%; animation-duration: 8s;
+}
+.hero .particle:nth-child(2) {
+  top: 60%; left: 70%; animation-duration: 10s;
+}
+.hero .particle:nth-child(3) {
+  top: 40%; left: 50%; animation-duration: 14s;
+}
+
+@keyframes floatParticle {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+  100% { transform: translate(-30px, 20px) scale(0.9); }
+}
+
+/* Hero Title */
 .hero h1 {
-  font-size: 3rem;
-  margin-bottom: 15px;
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+  animation: slideDown 1.2s ease-out forwards, heroBounce 2s ease-in-out infinite;
+  cursor: default;
+  transition: transform 0.3s ease;
 }
 
+/* Hero Subtitle */
 .hero p {
-  font-size: 1.5rem;
-  max-width: 700px;
+  font-size: 1.4rem;
+  z-index: 2;
+  animation: fadeUp 1.5s ease-out forwards;
+  opacity: 0;
+  animation-delay: 0.8s;
+  animation-fill-mode: forwards;
 }
 
-/* About */
+/* Slide down animation */
+@keyframes slideDown {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Fade up for subtitle */
+@keyframes fadeUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Bounce effect for hero title */
+@keyframes heroBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Hover scale effect for hero title */
+.hero h1:hover {
+  transform: scale(1.05);
+}
+
+
+/* ---------- About Section ---------- */
 .about {
   text-align: center;
-  padding: 60px 20px;
+  padding: 90px 20px;
+  background: #f0fffc;
+  position: relative;
+}
+
+.about::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50px;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(0, 150, 136, 0.05), rgba(0, 188, 212, 0.05));
+  transform: skewY(-3deg);
+  z-index: 0;
 }
 
 .about h2 {
-  font-size: 2rem;
-  margin-bottom: 15px;
+  font-size: 2.4rem;
+  margin-bottom: 20px;
   color: #00796b;
+  position: relative;
+  z-index: 1;
 }
 
 .about p {
   font-size: 1.1rem;
   color: #555;
-  max-width: 700px;
+  max-width: 750px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.7;
+  z-index: 1;
+  position: relative;
 }
 
-/* Services */
+/* ---------- Services Section ---------- */
 .services {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 40px;
-  padding: 60px 20px;
+  gap: 50px;
+  padding: 80px 20px;
+  background: linear-gradient(to bottom right, #e0f7fa, #f9fbe7);
 }
 
 .service-card {
-  width: 180px;
-  height: 180px;
-  background: linear-gradient(135deg, #b2dfdb, #80cbc4); /* soft teal shades */
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
   border-radius: 25px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #004d40; /* icon & text color */
+  color: #004d40;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 .service-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.service-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, rgba(0, 150, 136, 0.15), rgba(0, 188, 212, 0.2));
+  transform: rotate(45deg);
+  transition: all 0.5s;
+}
+
+.service-card:hover::before {
+  top: 0;
+  left: 0;
 }
 
 .service-card .icon {
-  font-size: 75px;
-  margin-bottom: 12px;
+  font-size: 70px;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .icon {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .service-card h3 {
@@ -127,11 +288,11 @@
   font-weight: 600;
 }
 
-/* Contact */
+/* ---------- Contact Section ---------- */
 .contact {
   text-align: center;
-  padding: 60px 20px;
-  background-color: #e0f2f1; /* light green-blue */
+  padding: 80px 20px;
+  background: #e0f2f1;
 }
 
 .contact h2 {
@@ -143,34 +304,29 @@
 .contact p {
   font-size: 1.1rem;
   color: #333;
-  margin: 5px 0;
+  margin: 8px 0;
 }
 
-/* Footer */
+/* ---------- Footer ---------- */
 .footer {
   text-align: center;
-  padding: 20px;
-  background: #b2dfdb;
-  color: #004d40;
+  padding: 25px;
+  background: #00796b;
+  color: white;
   font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
-/* Responsive */
-@media screen and (max-width: 768px) {
+/* ---------- Scroll & Animation Responsiveness ---------- */
+@media (max-width: 768px) {
   .hero h1 {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
   }
   .hero p {
-    font-size: 1.2rem;
-  }
-  .services {
-    gap: 25px;
+    font-size: 1.1rem;
   }
   .service-card {
-    width: 150px;
-    height: 150px;
-  }
-  .service-card .icon {
-    font-size: 60px;
+    width: 160px;
+    height: 160px;
   }
 }

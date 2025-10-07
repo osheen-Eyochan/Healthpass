@@ -1,16 +1,45 @@
 import React from "react";
-import { FaUserInjured, FaUserMd, FaClipboard, FaPills } from "react-icons/fa";
+import { FaUserInjured, FaUserMd, FaClipboard, FaPills, FaUserShield } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
 
+
 const HomePage = () => {
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+  const revealElements = document.querySelectorAll(".about, .services, .contact");
+  
+  const revealOnScroll = () => {
+    revealElements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight - 100) {
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0)";
+      }
+    });
+  };
+  
+  
+  revealElements.forEach((el) => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(60px)";
+    el.style.transition = "all 1s ease-out";
+  });
+  
+  window.addEventListener("scroll", revealOnScroll);
+  revealOnScroll();
+  
+  return () => window.removeEventListener("scroll", revealOnScroll);
+}, []);
+
 
   const services = [
     { name: "Patient", icon: <FaUserInjured />, link: "/login" },
     { name: "Doctor", icon: <FaUserMd />, link: "/doctor/login" },
     { name: "Receptionist", icon: <FaClipboard />, link: "/receptionist/login" },
     { name: "Pharmacy", icon: <FaPills />, link: "/pharmacy/login" },
+    { name: "Admin", icon: <FaUserShield />, link: "/admin/login" }, // 👈 Added Admin
   ];
 
   return (
@@ -37,8 +66,8 @@ const HomePage = () => {
       <section id="about" className="about">
         <h2>About Us</h2>
         <p>
-          HealthPass Hospital provides top-notch healthcare with experienced professionals and state-of-the-art facilities.
-          We are committed to patient care and wellness 24/7.
+          HealthPass Hospital provides top-notch healthcare with experienced professionals and
+          state-of-the-art facilities. We are committed to patient care and wellness 24/7.
         </p>
       </section>
 

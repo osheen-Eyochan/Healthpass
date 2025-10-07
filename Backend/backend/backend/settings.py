@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'receptionist',
     'doctor',
     'pharmacy',  
+    'admin_panel',
 ]
 
 MIDDLEWARE = [
